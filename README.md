@@ -55,4 +55,12 @@ make CFLAGS="-g -finstrument-functions"
     ```
 
 # Enjoy and Analysis the Report
-For now, open the `report.txt` and enjoy it.
+For now, open the `report.txt` and enjoy it. The example like:
+```c
+.. [main](/home/pi/code/github/ftracer/example/test.c:12) - (called from ??:0)
+.... [test](/home/pi/code/github/ftracer/example/test.c:5) - (called from test.c:13)
+```
+
+More detail see the [example][1]
+
+[1]: https://github.com/finaldie/ftracer/tree/master/example
