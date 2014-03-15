@@ -25,6 +25,9 @@ def gen_report_line(type, func_name, func_location, caller_name, caller_location
     global prefix
     if type == "E":
         prefix += ".."
+
+        # cut off the prefix of path
+        caller_location = os.path.basename(caller_location)
         print "%s %s(%s) - (called from %s)" % (prefix, func_name, func_location, caller_location)
     elif type == "X":
         prefix = prefix[2:]
