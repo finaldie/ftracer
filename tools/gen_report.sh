@@ -1,13 +1,13 @@
 #!/bin/sh
 
-if [ $# != 2 ]; then
-	echo "usage gen_report.sh exe trace.txt"
+if [ $# != 1 ]; then
+	echo "usage gen_report.sh exe"
 	exit 1
 fi
 
 exe=$1
-trace_file=$2
-data_file=data
+trace_file=/tmp/trace.txt
+data_file=/tmp/trace_data
 
 ./formatter.py -f $trace_file > $data_file
 
@@ -21,3 +21,5 @@ do
 
 	echo "$prefix [$func_name]($func_location) - (called from $caller_data)"
 done
+
+rm -f $data_file
