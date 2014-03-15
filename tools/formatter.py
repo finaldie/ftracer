@@ -12,18 +12,20 @@ def load_trace_file():
     file = open(trace_file, "r")
 
     for line in file.readlines():
-        value_list = line.split(" ")
+        value_list = line.strip('\n').split(" ")
 
         type = value_list[0]
-        func = value_list[1]
-        caller = value_list[2]
-        gen_report_line(type, func, caller)
+        func_name = value_list[1]
+        func_location = value_list[2]
+        caller_name = value_list[3]
+        caller_location = value_list[4]
+        gen_report_line(type, func_name, func_location, caller_name, caller_location)
 
-def gen_report_line(type, func, caller):
+def gen_report_line(type, func_name, func_location, caller_name, caller_location):
     global prefix
     if type == "E":
         prefix += ".."
-        print "%s %s %s" % (prefix, func, caller),
+        print "%s %s(%s) - (called from %s)" % (prefix, func_name, func_location, caller_location)
     elif type == "X":
         prefix = prefix[2:]
 
