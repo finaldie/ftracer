@@ -35,9 +35,9 @@ make CFLAGS="-g -finstrument-functions"
 **NOTE:** you can try the example in ftracer
 
 ## Generate Call Graph Report
-* PRELOAD ftracer.so
+* PRELOAD ftracer.so in the wrapper script
     ```bash
-    cat run.sh
+    bash $ cat run.sh
     #!/bin/sh
     export LD_PRELOAD=/path/to/ftracer.so
 
