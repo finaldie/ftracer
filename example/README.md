@@ -12,6 +12,11 @@ bash $ ./run.sh
 i = 2
 bash $ cd ../tools/
 bash $ ./gen_report.sh ../example/test
-.. [main](/home/pi/code/github/ftracer/example/test.c:12) - (called from ??:0)
-.... [test](/home/pi/code/github/ftracer/example/test.c:5) - (called from test.c:13)
+ 1x main(/home/username/github/ftracer/example/test.c:44) - (called from ??:0)
+.. 3x a(/home/username/github/ftracer/example/test.c:36) - (called from test.c:45)
+.... 1x b(/home/username/github/ftracer/example/test.c:21) - (called from test.c:39)
+...... 1x c(/home/username/github/ftracer/example/test.c:16) - (called from test.c:25)
+.... 1x b(/home/username/github/ftracer/example/test.c:21) - (called from test.c:39)
+...... 2x d(/home/username/github/ftracer/example/test.c:11) - (called from test.c:27)
+...... 1x e(/home/username/github/ftracer/example/test.c:6) - (called from test.c:31)
 ```
