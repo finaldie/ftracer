@@ -114,7 +114,6 @@ def create_frame(prefix, func_name, func_location, caller_name, caller_location)
 def gen_report(file, prefix, call_list):
     while True:
         line = file.readline()
-        print line
         if not line:
             return
 
@@ -138,7 +137,6 @@ def gen_report(file, prefix, call_list):
             # increase the times counter in the frame
             if not call_list:
                 call_list.append(frame)
-                print "first frame: %s" % str(call_list)
 
             # compare frame with last frame exclude the times field
             # To compare it, we should set the last_frame.times = 1 first,
@@ -150,11 +148,9 @@ def gen_report(file, prefix, call_list):
 
                 if last_frame == frame:
                     last_frame['times'] = prev_times + 1
-                    print "times + 1, frame: %s" % str(call_list)
                 else:
                     last_frame['times'] = prev_times
                     call_list.append(frame)
-                    print "append frame: %s" % str(call_list)
 
         # we exit from a call
         elif type == "X":
