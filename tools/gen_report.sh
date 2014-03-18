@@ -23,7 +23,7 @@ do
 
     thread_trace_data=$data_file.$threadid
     # 3. generate the data including the function name related information
-    cat $thread_raw_data | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print "%s", $0} else {printf "%s|", $0}}' > $thread_trace_data
+    cat $thread_raw_data | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' > $thread_trace_data
 
     thread_stage_data=$stage_file.$threadid
     # 4. paste it with orignal trace data and generate the new data
