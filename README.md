@@ -55,7 +55,8 @@ make CFLAGS="-g -finstrument-functions"
     ./gen_report.sh yourapp /tmp/tracer.txt > report.txt
     ```
 
-## Advanced
+# Advanced
+## `env` variables
 * Start tracer when enter in your specific function address
     ```
     export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
