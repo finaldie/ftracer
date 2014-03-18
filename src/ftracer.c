@@ -6,14 +6,17 @@
 #include <signal.h>
 #include <pthread.h>
 
-#define TRACE_FILE "/tmp/trace.txt"
+// macros for static values
+#define FTRACE_DEFAULT_FILE "/tmp/trace.txt"
+#define TRACE_NULL "0x0"
+
+// macros for env variables, the following are all the env keys
 #define FTRACER_FUNC_ENTRY "FTRACER_FUNC_ENTRY"
 #define FTRACER_SIG_NUM "FTRACER_SIG_NUM"
-#define TRACE_NULL "0x0"
+#define FTRACER_OUTPUT_FILE "FTRACER_FILE"
 
 static FILE* __fp = NULL;
 static int __tracer_start = 0;
-
 static uintptr_t __func_entry = 0;
 
 static pthread_mutex_t _fmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -97,55 +100,62 @@ void tracer_sighandler(int sig)
 
 void main_constructor(void)
 {
-    __fp = fopen(TRACE_FILE, "w");
+    char* trace_file = getenv(FTRACER_OUTPUT_FILE);
+    if (!trace_file) {
+        trace_file = FTRACE_DEFAULT_FILE;
+    }
+
+    __fp = fopen(trace_file, "w");
     if (__fp == NULL) {
         printf("can not open trace.txt\n");
-    } else {
-        printf("open trace file: %s success\n", TRACE_FILE);
-
-        // setup tracer according to env
-        // 1. setup by function address
-        char* func_entry = getenv(FTRACER_FUNC_ENTRY);
-        if (func_entry) {
-            __func_entry = strtoul(func_entry, NULL, 16);
-            if (!__func_entry) {
-                printf("Warning: %s is invalid, tracer is disabled: %s\n", FTRACER_FUNC_ENTRY, strerror(errno));
-            } else {
-                printf("tracer will start when function(%p) is called\n", (void*)__func_entry);
-            }
-
-            return;
-        }
-
-        // 2. setup by signal
-        char* sig_num_str = getenv(FTRACER_SIG_NUM);
-        if (sig_num_str) {
-            int sig_num = (int)strtoul(sig_num_str, NULL, 10);
-            if (sig_num <= 0 ) {
-                printf("Warning: %s is invalid, tracer is disabled: sig_num = %d\n", FTRACER_SIG_NUM, sig_num);
-                return;
-            }
-
-            struct sigaction sa;
-            sa.sa_handler = tracer_sighandler;
-            sigemptyset(&sa.sa_mask);
-            sa.sa_flags = 0;
-
-            sigaction(sig_num, &sa, NULL);
-
-            printf("tracer will start when receive signal number = %d\n", sig_num);
-            return;
-        }
-
-        __tracer_start = 1;
-        printf("tracer start\n");
+        return;
     }
+
+    printf("open trace file: %s success\n", trace_file);
+
+    // setup tracer according to env
+    // 1. setup by function address
+    char* func_entry = getenv(FTRACER_FUNC_ENTRY);
+    if (func_entry) {
+        __func_entry = strtoul(func_entry, NULL, 16);
+        if (!__func_entry) {
+            printf("Warning: %s is invalid, tracer is disabled: %s\n", FTRACER_FUNC_ENTRY, strerror(errno));
+        } else {
+            printf("tracer will start when function(%p) is called\n", (void*)__func_entry);
+        }
+
+        return;
+    }
+
+    // 2. setup by signal, the two options cannot be shown in the same time,
+    // if that, the signal option will be no effect
+    char* sig_num_str = getenv(FTRACER_SIG_NUM);
+    if (sig_num_str) {
+        int sig_num = (int)strtoul(sig_num_str, NULL, 10);
+        if (sig_num <= 0 ) {
+            printf("Warning: %s is invalid, tracer is disabled: sig_num = %d\n", FTRACER_SIG_NUM, sig_num);
+            return;
+        }
+
+        struct sigaction sa;
+        sa.sa_handler = tracer_sighandler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+
+        sigaction(sig_num, &sa, NULL);
+
+        printf("tracer will start when receive signal number = %d\n", sig_num);
+        return;
+    }
+
+    __tracer_start = 1;
+    printf("tracer start\n");
 }
 
 void main_deconstructor(void)
 {
     if (__fp) {
         fclose(__fp);
-        printf("close trace file: %s\n", TRACE_FILE);
+        printf("close trace file\n");
     }
 }
