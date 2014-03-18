@@ -45,11 +45,11 @@ make CFLAGS="-g -finstrument-functions"
     ```
 * Additional Options
    * Start tracer when enter in your specific function address
-      ```bash
+      ```
       export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
       ```
    * Start tracer when receive your specific signal
-      ```bash
+      ```
       export FTRACER_SIG_NUM=10 # 10 is SIGUSR1, kill -s SIGUSR1 PID to start tracer
       ```
 * Run it
