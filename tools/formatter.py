@@ -117,7 +117,7 @@ def gen_report(file, prefix, call_list):
         if not line:
             return
 
-        value_list = line.strip('\n').split(' ')
+        value_list = line.strip('\n').split('|')
         # get the data from one line
         type = value_list[0]
         # func_name and func_location is the primary key to identify a unique
