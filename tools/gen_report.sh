@@ -36,6 +36,8 @@ do
     echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 6. clean up the temporary files
-    rm -f $thread_raw_data $thread_trace_data $thread_stage_data $index_file
+    rm -f $thread_raw_data $thread_trace_data $thread_stage_data
 done
 
+# 7. clean up index file
+rm -f $index_file
