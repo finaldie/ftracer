@@ -9,6 +9,8 @@ trace_file = ""
 sym_filters = []
 file_filters = []
 
+process_start = False
+
 # To understand the basic working flow, let's see an example, if there is a call
 # graph like:
 #a
@@ -112,6 +114,16 @@ def create_frame(prefix, func_name, func_location, caller_name, caller_location)
         'next' : []
     }
 
+def should_skip_line(type):
+    global process_start
+    if process_start == False:
+        if type == "X":
+            return True
+        else:
+            process_start = True
+            return False
+    else:
+        return False
 
 def gen_report(file, prefix, call_list):
     while True:
@@ -120,8 +132,15 @@ def gen_report(file, prefix, call_list):
             return
 
         value_list = line.strip('\n').split('|')
+
         # get the data from one line
         type = value_list[0]
+
+        # We should pre-cut off the top of 'X' lines, or the data will be useless
+        if should_skip_line(type):
+            print "skip the useless X line"
+            continue
+
         # func_name and func_location is the primary key to identify a unique
         # function
         func_name = value_list[1]
@@ -204,7 +223,7 @@ def dump_graph(call_graph):
 
 
 def usage():
-    print "usage: formatter.py [-f trace.txt] [-s filter[, filters...]]"
+    print "usage: formatter.py [-f trace.txt] [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
