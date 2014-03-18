@@ -43,15 +43,7 @@ make CFLAGS="-g -finstrument-functions"
 
     ./yourapp
     ```
-* Additional Options
-   * Start tracer when enter in your specific function address
-      ```
-      export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
-      ```
-   * Start tracer when receive your specific signal
-      ```
-      export FTRACER_SIG_NUM=10 # 10 is SIGUSR1, kill -s SIGUSR1 PID to start tracer
-      ```
+
 * Run it
     ```bash
     ./run.sh
@@ -62,6 +54,21 @@ make CFLAGS="-g -finstrument-functions"
     cd tools
     ./gen_report.sh yourapp /tmp/tracer.txt > report.txt
     ```
+
+## Advanced
+   * Start tracer when enter in your specific function address
+      ```
+      export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
+      ```
+   * Start tracer when receive your specific signal
+      ```
+      export FTRACER_SIG_NUM=10 # 10 is SIGUSR1, kill -s SIGUSR1 PID to start tracer
+      ```
+   * Specific a output tracer file
+      ```
+      export FTRACER_FILE=/tmp/your_tracer_file
+      ```
+   **NOTE:** About signal and function address entrance two features, they can not enable in the same time, if that, the signal feature will not be take effect.
 
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
