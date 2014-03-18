@@ -6,6 +6,8 @@ import getopt
 import string
 
 trace_file = ""
+sym_filters = []
+file_filters = []
 
 # To understand the basic working flow, let's see an example, if there is a call
 # graph like:
@@ -156,8 +158,43 @@ def gen_report(file, prefix, call_list):
         elif type == "X":
             return
 
+# if the frame funcname is in skipping list, then return True, or False
+def sym_should_skip(frame):
+    raw_func_name = frame['func_name']
+    func_name = ""
+
+    # if :: in func name, that means it's C++ function
+    if "::" in raw_func_name:
+        func_name = raw_func_name.split("::")[0]
+        func_name = func_name.split(" ")
+        if len(func_name) == 2:
+            func_name = func_name[1]
+        else:
+            func_name = func_name[0]
+    else:
+        func_name = raw_func_name
+
+    if func_name in sym_filters:
+        return True
+    else:
+        return False
+
+def file_should_skip(frame):
+    raw_func_location = frame['func_location']
+
+    for filter_item in file_filters:
+        if filter_item in raw_func_location:
+            return True
+        else:
+            return False
+
 def dump_graph(call_graph):
     for frame in call_graph:
+        if sym_should_skip(frame):
+            continue
+        elif file_should_skip(frame):
+            continue
+
         print "%s %dx %s(%s) - (called from %s)" % (frame['prefix'],
                                                     frame['times'],
                                                     frame['func_name'],
@@ -167,7 +204,7 @@ def dump_graph(call_graph):
 
 
 def usage():
-    print "usage: formatter.py -f trace.txt"
+    print "usage: formatter.py [-f trace.txt] [-s filter[, filters...]]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -175,13 +212,17 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hf:")
+        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:")
 
         for op, value in opts:
             if op == "-h":
                 sys.exit(0)
             elif op == "-f":
                 trace_file = value
+            elif op == '-s':
+                sym_filters = value.split(",")
+            elif op == '-S':
+                file_filters = value.split(",")
     except:
         usage()
         sys.exit(1)
