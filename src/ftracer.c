@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <signal.h>
+#include <pthread.h>
 
 #define TRACE_FILE "/tmp/trace.txt"
 #define FTRACER_FUNC_ENTRY "FTRACER_FUNC_ENTRY"
@@ -15,10 +16,49 @@ static int __tracer_start = 0;
 
 static uintptr_t __func_entry = 0;
 
+static pthread_mutex_t _fmutex = PTHREAD_MUTEX_INITIALIZER;
+
 void __cyg_profile_func_enter(void* this, void* callsite)
                              __attribute__((no_instrument_function));
 void __cyg_profile_func_exit(void* this, void* callsite)
                              __attribute__((no_instrument_function));
+
+static
+void _dump_profile_enter_info(void* function, void* caller)
+{
+    if (!__fp) {
+        return;
+    }
+
+    pthread_t current = pthread_self();
+
+    pthread_mutex_lock(&_fmutex);
+
+    int n = fprintf(__fp, "%lu|E|%p|%p\n", current, function, caller);
+    if (n < 0) {
+        printf("dump entrance trace info failed: %s\n", strerror(errno));
+    }
+
+    pthread_mutex_unlock(&_fmutex);
+}
+
+void _dump_profile_exit_info(void* function, void* caller)
+{
+    if (!__fp) {
+        return;
+    }
+
+    pthread_t current = pthread_self();
+
+    pthread_mutex_lock(&_fmutex);
+
+    int n = fprintf(__fp, "%lu|X|%s|%s\n", current, TRACE_NULL, TRACE_NULL);
+    if (n < 0) {
+        printf("dump exit trace info failed: %s\n", strerror(errno));
+    }
+
+    pthread_mutex_unlock(&_fmutex);
+}
 
 void __cyg_profile_func_enter(void* function, void* caller)
 {
@@ -32,15 +72,7 @@ void __cyg_profile_func_enter(void* function, void* caller)
         }
     }
 
-    if (!__fp) {
-        return;
-    }
-
-    /* Function Entry Address */
-    int n = fprintf(__fp, "E|%p|%p\n", function, caller);
-    if (n < 0) {
-        printf("dump entrance trace info failed: %s\n", strerror(errno));
-    }
+    _dump_profile_enter_info(function, caller);
 }
 
 void __cyg_profile_func_exit(void* function, void* caller)
@@ -49,15 +81,7 @@ void __cyg_profile_func_exit(void* function, void* caller)
         return;
     }
 
-    if (!__fp) {
-        return;
-    }
-
-    /* Function Exit Address */
-    int n = fprintf(__fp, "X|%s|%s\n", TRACE_NULL, TRACE_NULL);
-    if (n < 0) {
-        printf("dump exit trace info failed: %s\n", strerror(errno));
-    }
+    _dump_profile_exit_info(function, caller);
 }
 
 void main_constructor(void)

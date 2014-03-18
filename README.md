@@ -1,7 +1,7 @@
 ftracer
 ======
 
-A toolkit for tracing C/C++ program, it can generate a call graph for you<br>
+A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for you<br>
 Sometimes you may hard to understand a complex program, especially a very big application. So you need a powerful tool to help you to dump the call graph.
 
 # Before you start
@@ -64,7 +64,7 @@ make CFLAGS="-g -finstrument-functions"
     ```
 
 # Enjoy and Analysis the Report
-For now, open the `report.txt` and enjoy it. The example like:
+For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
 ```c
  1x main(/home/username/github/ftracer/example/test.c:44) - (called from ??:0)
 .. 3x a(/home/username/github/ftracer/example/test.c:36) - (called from test.c:45)

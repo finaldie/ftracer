@@ -1,5 +1,5 @@
 all: tracer
-	gcc -Wall -std=c99 -g -finstrument-functions -o test test.c
+	gcc -Wall -std=c99 -g -finstrument-functions -o test test.c -lpthread
 
 tracer:
 	make -C ../src

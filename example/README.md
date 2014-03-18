@@ -12,11 +12,29 @@ bash $ ./run.sh
 i = 2
 bash $ cd ../tools/
 bash $ ./gen_report.sh ../example/test
- 1x main(/home/username/github/ftracer/example/test.c:44) - (called from ??:0)
-.. 3x a(/home/username/github/ftracer/example/test.c:36) - (called from test.c:45)
-.... 1x b(/home/username/github/ftracer/example/test.c:21) - (called from test.c:39)
-...... 1x c(/home/username/github/ftracer/example/test.c:16) - (called from test.c:25)
-.... 1x b(/home/username/github/ftracer/example/test.c:21) - (called from test.c:39)
-...... 2x d(/home/username/github/ftracer/example/test.c:11) - (called from test.c:27)
-...... 1x e(/home/username/github/ftracer/example/test.c:6) - (called from test.c:31)
+thread(139800167335680) report generate complete at /tmp/trace_report.txt.139800167335680
+thread(139800175728384) report generate complete at /tmp/trace_report.txt.139800175728384
+thread(139800186169088) report generate complete at /tmp/trace_report.txt.139800186169088
+bash $ cat /tmp/trace_report.txt.1398001*
+ 1x work(/home/final/code/github/ftracer/example/test.c:44) - (called from %s ??:0)
+.. 3x a(/home/final/code/github/ftracer/example/test.c:37) - (called from test.c:45)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 1x c(/home/final/code/github/ftracer/example/test.c:17) - (called from test.c:26)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 2x d(/home/final/code/github/ftracer/example/test.c:12) - (called from test.c:28)
+...... 1x e(/home/final/code/github/ftracer/example/test.c:7) - (called from test.c:32)
+ 1x work(/home/final/code/github/ftracer/example/test.c:44) - (called from %s ??:0)
+.. 3x a(/home/final/code/github/ftracer/example/test.c:37) - (called from test.c:45)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 1x c(/home/final/code/github/ftracer/example/test.c:17) - (called from test.c:26)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 2x d(/home/final/code/github/ftracer/example/test.c:12) - (called from test.c:28)
+...... 1x e(/home/final/code/github/ftracer/example/test.c:7) - (called from test.c:32)
+ 1x main(/home/final/code/github/ftracer/example/test.c:53) - (called from %s ??:0)
+.. 3x a(/home/final/code/github/ftracer/example/test.c:37) - (called from test.c:54)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 1x c(/home/final/code/github/ftracer/example/test.c:17) - (called from test.c:26)
+.... 1x b(/home/final/code/github/ftracer/example/test.c:22) - (called from test.c:40)
+...... 2x d(/home/final/code/github/ftracer/example/test.c:12) - (called from test.c:28)
+...... 1x e(/home/final/code/github/ftracer/example/test.c:7) - (called from test.c:32)
 ```

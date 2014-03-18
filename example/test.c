@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 
 void e()
@@ -39,11 +40,26 @@ void a()
     b(2);
 }
 
+void* work(void* arg)
+{
+    for (int i=0; i<=2; i++) {
+        a();
+    }
+    return NULL;
+}
+
 
 int main(int argc, char** argv)
 {
     for (int i=0; i<=2; i++) {
         a();
     }
+
+    pthread_t t1, t2;
+    pthread_create(&t1, NULL, work, NULL);
+    pthread_create(&t2, NULL, work, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
     return 0;
 }
