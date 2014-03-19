@@ -5,6 +5,7 @@ exe=
 trace_file=
 sym_filters=
 file_filters=
+path_level=
 
 # static variables
 raw_data_file=/tmp/trace_raw_data
@@ -16,22 +17,32 @@ index_file=/tmp/trace_thread_index.txt
 
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
     echo " \_ -s: the symbol filters, for example: std,boost"
     echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
+    echo " \_ -p: the keep at most N level of path, it must be a number"
 }
 
 function check_args()
 {
     if [ -z "$exe" ]; then
+        echo "Error: the -e parameter is required"
         usage
         exit 1
     fi
 
     if [ -z "$trace_file" ]; then
+        echo "Error: the -f parameter is required"
+        usage
+        exit 1
+    fi
+
+    echo $path_level | grep -P "^[0-9]+$" 2>&1 > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Error: the -p parameter must be a number"
         usage
         exit 1
     fi
@@ -39,7 +50,7 @@ function check_args()
 
 function read_args()
 {
-    while getopts "e:f:S:s:" ARGS
+    while getopts "e:f:S:s:p:" ARGS
     do
         case $ARGS in
             e)
@@ -53,6 +64,9 @@ function read_args()
                 ;;
             S)
                 file_filters=$OPTARG
+                ;;
+            p)
+                path_level=$OPTARG
                 ;;
             *)
                 exit
@@ -74,6 +88,10 @@ function generate_report()
 
     if [ -n "$file_filters" ]; then
         args=$args" -S $file_filters"
+    fi
+
+    if [ -n "$path_level" ]; then
+        args=$args" -p $path_level"
     fi
 
     ./formatter.py -f $input $args > $output
@@ -111,8 +129,8 @@ do
     echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 7. clean up the temporary files
-    rm -f $thread_raw_data $thread_pure_data $thread_trans_data $thread_stage_data
+    #rm -f $thread_raw_data $thread_pure_data $thread_trans_data $thread_stage_data
 done
 
 # 8. clean up index file
-rm -f $index_file
+#rm -f $index_file

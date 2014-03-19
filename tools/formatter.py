@@ -5,10 +5,13 @@ import os
 import getopt
 import string
 
+# user input args
 trace_file = ""
 sym_filters = []
 file_filters = []
+path_level = -1
 
+# global variables
 process_start = False
 
 # To understand the basic working flow, let's see an example, if there is a call
@@ -138,7 +141,6 @@ def gen_report(file, prefix, call_list):
 
         # We should pre-cut off the top of 'X' lines, or the data will be useless
         if should_skip_line(type):
-            print "skip the useless X line"
             continue
 
         # func_name and func_location is the primary key to identify a unique
@@ -207,6 +209,30 @@ def file_should_skip(frame):
         else:
             return False
 
+def getFuncLocation(func_loc):
+    display_func_loc = ""
+
+    if path_level > 0:
+        func_loc_list = os.path.split(func_loc)
+        path = func_loc_list[0]
+        func_file = func_loc_list[1]
+
+        if not path:
+            display_func_loc = func_file
+        else:
+            dir_list = path.split("/")
+            # keep the last path by the path_level, then convert them to string
+            dir_list = dir_list[-path_level:]
+            for path_item in dir_list:
+                display_func_loc = os.path.join(display_func_loc, path_item)
+            display_func_loc = os.path.join(display_func_loc, func_file)
+
+    elif path_level == 0:
+        display_func_loc = os.path.basename(func_loc)
+
+    return display_func_loc
+
+
 def dump_graph(call_graph):
     for frame in call_graph:
         if sym_should_skip(frame):
@@ -214,16 +240,19 @@ def dump_graph(call_graph):
         elif file_should_skip(frame):
             continue
 
+        # filter path by path_level
+        display_func_loc = getFuncLocation(frame['func_location'])
+
         print "%s %dx %s(%s) - (called from %s)" % (frame['prefix'],
                                                     frame['times'],
                                                     frame['func_name'],
-                                                    frame['func_location'],
+                                                    display_func_loc,
                                                     frame['caller_location'])
         dump_graph(frame['next'])
 
 
 def usage():
-    print "usage: formatter.py -f trace.txt [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]]"
+    print "usage: formatter.py -f trace.txt [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]] [-p level]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -231,7 +260,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:")
+        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:p:")
 
         for op, value in opts:
             if op == "-h":
@@ -242,6 +271,8 @@ if __name__ == "__main__":
                 sym_filters = value.split(",")
             elif op == '-S':
                 file_filters = value.split(",")
+            elif op == '-p':
+                path_level = int(value)
     except:
         usage()
         sys.exit(1)
