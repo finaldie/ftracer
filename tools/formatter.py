@@ -223,7 +223,7 @@ def dump_graph(call_graph):
 
 
 def usage():
-    print "usage: formatter.py [-f trace.txt] [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]]"
+    print "usage: formatter.py -f trace.txt [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
