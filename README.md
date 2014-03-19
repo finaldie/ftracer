@@ -74,7 +74,7 @@ make CFLAGS="-g -finstrument-functions"
 
 **NOTE:** About signal and function address entrance two features, they can not enable in the same time, if that, the signal feature will not be take effect.
 
-## Filters
+## gen_report Options
 Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
 boost... so we should filter them out
 * Filter by symbol
@@ -88,6 +88,11 @@ c++ related information out, you should:
     ```
     gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
     ```
+* Keep at most N level of path
+If a path is too long, it will be a noise for us, so the -p parameter will help
+to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`,
+use `-p 1` the path in the report will be `c/d.c`.<br>
+If no `-p` or `-p` value is a negative number, this feature will be ignore
 
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
