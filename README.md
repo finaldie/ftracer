@@ -95,6 +95,11 @@ boost... so we should filter them out
     If a path is too long, it will be a noise for us, so the -p parameter will help to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`, use `-p 1` the path in the report will be `c/d.c`.<br>
     If no `-p` or `-p` value is a negative number, this feature will be ignore
 
+* Specific output folder
+
+    The default output folder is `/tmp`, but if you want to specific another folder, 
+    `-o output` will help you.
+
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
 ```c

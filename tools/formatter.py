@@ -229,6 +229,8 @@ def getFuncLocation(func_loc):
 
     elif path_level == 0:
         display_func_loc = os.path.basename(func_loc)
+    else:
+        display_func_loc = func_loc
 
     return display_func_loc
 
