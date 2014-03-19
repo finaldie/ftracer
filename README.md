@@ -77,22 +77,23 @@ make CFLAGS="-g -finstrument-functions"
 ## gen_report Options
 Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
 boost... so we should filter them out
+
 * Filter by symbol
-For this, you should use `-s` arg, for example:
+
+    For this, you should use `-s` arg, for example:
     ```
     gen_report.sh -e app -f /tmp/trace.txt -s std
     ```
 * Filter by file/path
-For this, the `-S` arg will help you, for example if you want to filter all the 
-c++ related information out, you should:
+
+    For this, the `-S` arg will help you, for example if you want to filter all the c++ related information out, you should:
     ```
     gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
     ```
 * Keep at most N level of path
-If a path is too long, it will be a noise for us, so the -p parameter will help
-to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`,
-use `-p 1` the path in the report will be `c/d.c`.<br>
-If no `-p` or `-p` value is a negative number, this feature will be ignore
+
+    If a path is too long, it will be a noise for us, so the -p parameter will help to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`, use `-p 1` the path in the report will be `c/d.c`.<br>
+    If no `-p` or `-p` value is a negative number, this feature will be ignore
 
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
