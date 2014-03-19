@@ -7,6 +7,7 @@ sym_filters=
 file_filters=
 path_level=
 output_folder=/tmp
+cleanup=true
 
 # static variables
 raw_data_file=trace_raw_data
@@ -18,7 +19,7 @@ index_file=trace_thread_index.txt
 
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-i]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
@@ -26,6 +27,7 @@ function usage()
     echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
+    echo " \_ -i: ignore cleanup the tempoary data, this will help you to debug the tool"
 }
 
 function check_args()
@@ -72,7 +74,7 @@ function check_args()
 
 function read_args()
 {
-    while getopts "e:f:S:s:p:o:" ARGS
+    while getopts "e:f:S:s:p:o:i" ARGS
     do
         case $ARGS in
             e)
@@ -92,6 +94,9 @@ function read_args()
                 ;;
             o)
                 output_folder=$OPTARG
+                ;;
+            i)
+                cleanup=false
                 ;;
             *)
                 exit
@@ -155,8 +160,12 @@ do
     echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 7. clean up the temporary files
-    rm -f $thread_raw_data $thread_pure_data $thread_trans_data $thread_stage_data
+    if $cleanup; then
+        rm -f $thread_raw_data $thread_pure_data $thread_trans_data $thread_stage_data
+    fi
 done
 
 # 8. clean up index file
-rm -f $thread_index_file
+if $cleanup; then
+    rm -f $thread_index_file
+fi

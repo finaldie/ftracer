@@ -100,6 +100,10 @@ boost... so we should filter them out
     The default output folder is `/tmp`, but if you want to specific another folder, 
     `-o output` will help you.
 
+* Don't cleanup the temporay data
+
+    If you get wrong data when you run `gen_report.sh`, the temporay data will help you to debug what's happened, so if you want to debug it, pass the `-i` paramter.
+
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
 ```c
