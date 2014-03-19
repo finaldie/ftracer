@@ -52,7 +52,7 @@ make CFLAGS="-g -finstrument-functions"
 * Generate the Report
     ```bash
     cd tools
-    ./gen_report.sh yourapp /tmp/tracer.txt > report.txt
+    ./gen_report.sh -e yourapp -f /tmp/trace.txt > report.txt
     ```
 
 # Advanced
@@ -73,6 +73,21 @@ make CFLAGS="-g -finstrument-functions"
     ```
 
 **NOTE:** About signal and function address entrance two features, they can not enable in the same time, if that, the signal feature will not be take effect.
+
+## Filters
+Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
+boost... so we should filter them out
+* Filter by symbol
+For this, you should use `-s` arg, for example:
+    ```
+    gen_report.sh -e app -f /tmp/trace.txt -s std
+    ```
+* Filter by file/path
+For this, the `-S` arg will help you, for example if you want to filter all the 
+c++ related information out, you should:
+    ```
+    gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
+    ```
 
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
