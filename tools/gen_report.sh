@@ -27,7 +27,7 @@ function usage()
     echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
-    echo " \_ -i: ignore cleanup the tempoary data, this will help you to debug the tool"
+    echo " \_ -d: ignore cleanup the tempoary data, this will help you to debug the tool"
 }
 
 function check_args()
@@ -95,7 +95,7 @@ function read_args()
             o)
                 output_folder=$OPTARG
                 ;;
-            i)
+            d)
                 cleanup=false
                 ;;
             *)
