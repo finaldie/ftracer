@@ -180,6 +180,8 @@ def gen_report(file, prefix, call_list):
             return
 
 # if the frame funcname is in skipping list, then return True, or False
+# NOTE: for C, the funcname is the function name
+#       for C++, the funcname means a class name or namespace name
 def sym_should_skip(frame):
     raw_func_name = frame['func_name']
     func_name = ""
@@ -206,8 +208,8 @@ def file_should_skip(frame):
     for filter_item in file_filters:
         if filter_item in raw_func_location:
             return True
-        else:
-            return False
+
+    return False
 
 def getFuncLocation(func_loc):
     display_func_loc = ""
