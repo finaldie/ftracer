@@ -29,7 +29,6 @@ process_start = False
 #    prefix = "xx",
 #    func = "xx",
 #    func_location = "xx",
-#    caller = "xx",
 #    caller_location = "xx",
 #    times = n,
 #    next = [],
@@ -41,7 +40,6 @@ process_start = False
 #        prefix = "",
 #        func = "a",
 #        func_location = "xx",
-#        caller = "xx",
 #        caller_location = "xx",
 #        times = 1,
 #        next = [
@@ -49,7 +47,6 @@ process_start = False
 #                prefix = "..",
 #                func = "b",
 #                func_location = "xx",
-#                caller = "xx",
 #                caller_location = "xx",
 #                times = 1,
 #                next = [
@@ -57,7 +54,6 @@ process_start = False
 #                        prefix = "....",
 #                        func = "c",
 #                        func_location = "xx",
-#                        caller = "xx",
 #                        caller_location = "xx",
 #                        times = 1,
 #                        next = []
@@ -68,7 +64,6 @@ process_start = False
 #                prefix = "..",
 #                func = "b",
 #                func_location = "xx",
-#                caller = "xx",
 #                caller_location = "xx",
 #                times = 1,
 #                next = [
@@ -76,7 +71,6 @@ process_start = False
 #                        prefix = "....",
 #                        func = "d",
 #                        func_location = "xx",
-#                        caller = "xx",
 #                        caller_location = "xx",
 #                        times = 2,
 #                        next = []
@@ -85,7 +79,6 @@ process_start = False
 #                        prefix = "....",
 #                        func = "e",
 #                        func_location = "xx",
-#                        caller = "xx",
 #                        caller_location = "xx",
 #                        times = 1,
 #                        next = []
@@ -106,12 +99,11 @@ def load_trace_file():
     finally:
         file.close()
 
-def create_frame(prefix, func_name, func_location, caller_name, caller_location):
+def create_frame(prefix, func_name, func_location, caller_location):
     return {
         'prefix' : prefix,
         'func_name' : func_name,
         'func_location' : func_location,
-        'caller_name' : caller_name,
         'caller_location' : caller_location,
         'times' : 1,
         'next' : []
@@ -147,12 +139,11 @@ def gen_report(file, prefix, call_list):
         # function
         func_name = value_list[1]
         func_location = value_list[2]
-        caller_name = value_list[3]
-        caller_location = os.path.basename(value_list[4])
+        caller_location = os.path.basename(value_list[3])
 
         # we entry into next call
         if type == "E":
-            frame = create_frame(prefix, func_name, func_location, caller_name, caller_location)
+            frame = create_frame(prefix, func_name, func_location, caller_location)
 
             gen_report(file, frame['prefix'] + "..", frame['next'])
 

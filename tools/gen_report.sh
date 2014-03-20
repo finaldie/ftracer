@@ -147,11 +147,11 @@ do
 
     # 4. translate addrs to the function name and caller information
     thread_trans_data=$output_folder/$translate_data_file.$threadid
-    cat $thread_pure_data | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' > $thread_trans_data
+    cat $thread_pure_data | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $thread_trans_data
 
     # 5. paste it with orignal trace data and generate the new data
     thread_stage_data=$output_folder/$stage_file.$threadid
-    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s|%s\n", $1, $4, $5, $6, $7}' > $thread_stage_data
+    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s\n", $1, $4, $5, $6}' > $thread_stage_data
 
     # 6. generate the final report for this thread (plain text)
     thread_report_data=$output_folder/$report_file.$threadid
