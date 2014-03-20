@@ -14,6 +14,7 @@ path_level = -1
 
 # global variables
 process_start = False
+default_prefix_str = ".."
 
 # To understand the basic working flow, let's see an example, if there is a call
 # graph like:
@@ -38,21 +39,21 @@ process_start = False
 # So the full memory data will be:
 #[
 #    {
-#        prefix = "",
+#        prefix = 1,
 #        func = "a",
 #        func_location = "xx",
 #        caller_location = "xx",
 #        times = 1,
 #        next = [
 #            {
-#                prefix = "..",
+#                prefix = 2,
 #                func = "b",
 #                func_location = "xx",
 #                caller_location = "xx",
 #                times = 1,
 #                next = [
 #                    {
-#                        prefix = "....",
+#                        prefix = 3,
 #                        func = "c",
 #                        func_location = "xx",
 #                        caller_location = "xx",
@@ -62,14 +63,14 @@ process_start = False
 #                ]
 #            },
 #            {
-#                prefix = "..",
+#                prefix = 2,
 #                func = "b",
 #                func_location = "xx",
 #                caller_location = "xx",
 #                times = 1,
 #                next = [
 #                    {
-#                        prefix = "....",
+#                        prefix = 3,
 #                        func = "d",
 #                        func_location = "xx",
 #                        caller_location = "xx",
@@ -77,7 +78,7 @@ process_start = False
 #                        next = []
 #                    },
 #                    {
-#                        prefix = "....",
+#                        prefix = 3,
 #                        func = "e",
 #                        func_location = "xx",
 #                        caller_location = "xx",
@@ -95,7 +96,7 @@ def load_trace_file():
         file = open(trace_file, "r")
 
         call_graph = []
-        gen_report(file, "", call_graph, False)
+        gen_report(file, 1, call_graph, False)
         dump_graph(call_graph)
     finally:
         file.close()
@@ -148,7 +149,7 @@ def gen_report(file, prefix, call_list, skip):
         if type == "E":
             # if skip is true, means the parent already been skipped
             if skip:
-                gen_report(file, "", [], True)
+                gen_report(file, 0, [], True)
                 continue
 
             # if the parent has not been skipped, let check current frame whether
@@ -160,14 +161,14 @@ def gen_report(file, prefix, call_list, skip):
                 should_skip = True
 
             if should_skip:
-                gen_report(file, "", [], True)
+                gen_report(file, 0, [], True)
                 continue
 
             # Ok, for now, the current frame has not been skipped, let's prepare
             # a frame for it
             frame = create_frame(prefix, func_name, func_location, caller_location)
 
-            gen_report(file, frame['prefix'] + "..", frame['next'], False)
+            gen_report(file, frame['prefix'] + 1, frame['next'], False)
 
             # if the last frame is equal to the next_call_list, we only need to
             # increase the times counter in the frame
@@ -248,13 +249,16 @@ def getFuncLocation(func_loc):
 
     return display_func_loc
 
+def getPrefix(prefix):
+    return "".join(default_prefix_str for i in range(prefix))
 
 def dump_graph(call_graph):
     for frame in call_graph:
         # filter path by path_level
         display_func_loc = getFuncLocation(frame['func_location'])
+        display_prefix = getPrefix(frame['prefix'])
 
-        print "%s %dx %s(%s) - (called from %s)" % (frame['prefix'],
+        print "%s %dx %s(%s) - (called from %s)" % (display_prefix,
                                                     frame['times'],
                                                     frame['func_name'],
                                                     display_func_loc,
