@@ -4,8 +4,10 @@
 #include <map>
 #include <iostream>
 
-using namespace std;
+#include "test.hpp"
 
+using namespace std;
+namespace abc {
 class E {
 public:
     E() {cout << "this is e" << endl;}
@@ -17,6 +19,9 @@ public:
         tm["e456"] = 20;
         cout << tm["e123"] << endl;
         cout << tm["e456"] << endl;
+
+        F<int> f(100);
+        f.test();
     }
 };
 
@@ -83,10 +88,12 @@ public:
     }
 };
 
+}
+
 void* work(void* arg)
 {
     for (int i=0; i<=2; i++) {
-        A a;
+        abc::A a;
         a.test();
     }
     return NULL;
@@ -95,7 +102,7 @@ void* work(void* arg)
 int main(int argc, char** argv)
 {
     for (int i=0; i<=2; i++) {
-        A a;
+        abc::A a;
         a.test();
     }
 

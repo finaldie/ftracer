@@ -4,6 +4,7 @@ import sys
 import os
 import getopt
 import string
+import pprint
 
 # user input args
 trace_file = ""
@@ -94,7 +95,7 @@ def load_trace_file():
         file = open(trace_file, "r")
 
         call_graph = []
-        gen_report(file, "", call_graph)
+        gen_report(file, "", call_graph, False)
         dump_graph(call_graph)
     finally:
         file.close()
@@ -120,7 +121,7 @@ def should_skip_line(type):
     else:
         return False
 
-def gen_report(file, prefix, call_list):
+def gen_report(file, prefix, call_list, skip):
     while True:
         line = file.readline()
         if not line:
@@ -142,10 +143,31 @@ def gen_report(file, prefix, call_list):
         caller_location = os.path.basename(value_list[3])
 
         # we entry into next call
+        # NOTE: in the enter stage('E'), we must not using return, since we always
+        # should return from exit stage('X')
         if type == "E":
+            # if skip is true, means the parent already been skipped
+            if skip:
+                gen_report(file, "", [], True)
+                continue
+
+            # if the parent has not been skipped, let check current frame whether
+            # or not should be skipped
+            should_skip = False
+            if sym_should_skip(func_name):
+                should_skip = True
+            elif file_should_skip(func_location):
+                should_skip = True
+
+            if should_skip:
+                gen_report(file, "", [], True)
+                continue
+
+            # Ok, for now, the current frame has not been skipped, let's prepare
+            # a frame for it
             frame = create_frame(prefix, func_name, func_location, caller_location)
 
-            gen_report(file, frame['prefix'] + "..", frame['next'])
+            gen_report(file, frame['prefix'] + "..", frame['next'], False)
 
             # if the last frame is equal to the next_call_list, we only need to
             # increase the times counter in the frame
@@ -167,14 +189,14 @@ def gen_report(file, prefix, call_list):
                     call_list.append(frame)
 
         # we exit from a call
+        # NOTE: this is the only exit point for this function
         elif type == "X":
             return
 
 # if the frame funcname is in skipping list, then return True, or False
 # NOTE: for C, the funcname is the function name
 #       for C++, the funcname means a class name or namespace name
-def sym_should_skip(frame):
-    raw_func_name = frame['func_name']
+def sym_should_skip(raw_func_name):
     func_name = ""
 
     # if :: in func name, that means it's C++ function
@@ -193,8 +215,7 @@ def sym_should_skip(frame):
     else:
         return False
 
-def file_should_skip(frame):
-    raw_func_location = frame['func_location']
+def file_should_skip(raw_func_location):
 
     for filter_item in file_filters:
         if filter_item in raw_func_location:
@@ -230,11 +251,6 @@ def getFuncLocation(func_loc):
 
 def dump_graph(call_graph):
     for frame in call_graph:
-        if sym_should_skip(frame):
-            continue
-        elif file_should_skip(frame):
-            continue
-
         # filter path by path_level
         display_func_loc = getFuncLocation(frame['func_location'])
 
