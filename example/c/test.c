@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+static inline
+void f()
+{
+    printf("this is f(inline)\n");
+}
 
 void e()
 {
@@ -24,6 +29,7 @@ void b(int i)
 
     if (i == 1) {
         c();
+        f();
     } else {
         for (int i=0; i<2; i++) {
             d();

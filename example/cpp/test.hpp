@@ -21,6 +21,11 @@ private:
     T _v;
 };
 
+inline void G()
+{
+    std::cout << "this is G(inline)" << std::endl;
+}
+
 }
 
 #endif

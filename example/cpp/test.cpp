@@ -62,6 +62,7 @@ public:
         if (arg == "1") {
             C c;
             c.test();
+            G();
         } else if (arg == "2") {
             for (int i=0; i<2; i++) {
                 D d;
