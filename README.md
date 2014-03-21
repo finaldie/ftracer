@@ -101,10 +101,10 @@ boost... so we should filter them out
 
     If you get wrong data when you run `gen_report.sh`, the temporay data will help you to debug what's happened, so if you want to debug it, pass the `-d` paramter.
 
-* `-D` Show debug info
+* `-v` Show debug info
 
     If you need more information during the report generating, you can pass -D in
-    
+
 * `-t` Start N process to generate report
 
     The addr2line is slow, sometimes you need to start N process to generate the report in parallel, it will reduce the generating time. For example `-t 4`

@@ -28,7 +28,7 @@ function debug_print()
 
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-D]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
@@ -37,9 +37,23 @@ function usage()
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
     echo " \_ -d: ignore cleanup the tempoary data, this will help you to debug the tool"
-    echo " \_ -D: show debug info"
+    echo " \_ -v: show debug info"
     echo " \_ -t: specific how many threads you want to use, it will speed up when the data is too big"
     echo " \_ -h: show the usage"
+}
+
+function check_and_exit()
+{
+    if [ $? -ne 0 ]; then
+        exit $?
+    fi
+}
+
+function clean_files()
+{
+    if $cleanup; then
+        rm -rf $@
+    fi
 }
 
 function check_args()
@@ -93,7 +107,7 @@ function check_args()
 
 function read_args()
 {
-    while getopts "e:f:S:s:p:o:dht:D" ARGS
+    while getopts "e:f:S:s:p:o:dht:v" ARGS
     do
         case $ARGS in
             e)
@@ -124,7 +138,7 @@ function read_args()
             t)
                 threads=$OPTARG
                 ;;
-            D)
+            v)
                 debug=true
                 ;;
             *)
@@ -214,12 +228,12 @@ function translate_multi_process()
             local status_file=$output.$i.status
             local partition_status="0"
             if [ -e $status_file ]; then
-                partitions_status=`tail -1 $status_file`
+                partition_status=`tail -1 $status_file`
             fi
 
             status_list[$i]="[p$i]: $partition_status"
 
-            if [ "$partitions_status" = "100" ]; then
+            if [ "$partition_status" = "100" ]; then
                 complete_count=`expr $complete_count "+" 1`
             fi
         done
@@ -265,32 +279,33 @@ cat $thread_index_file | while read size threadid;
 do
     thread_raw_data=$output_folder/$raw_data_file.$threadid
     cat $trace_file | grep "^$threadid" | awk -F '|' '{printf "%s|%s|%s\n", $2, $3, $4}' > $thread_raw_data
+    check_and_exit
 
     # 3. filter the raw data, get the pure data for next step
     thread_pure_data=$output_folder/$pure_data_file.$threadid
     ./filter.py -f $thread_raw_data > $thread_pure_data
+    check_and_exit
 
     # 4. translate addrs to the function name and caller information
     thread_trans_data=$output_folder/$translate_data_file.$threadid
     translate_process $thread_pure_data $thread_trans_data $size
+    check_and_exit
 
     # 5. paste it with orignal trace data and generate the new data
     thread_stage_data=$output_folder/$stage_file.$threadid
     paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s\n", $1, $4, $5, $6}' > $thread_stage_data
+    check_and_exit
 
     # 6. generate the final report for this thread (plain text)
     thread_report_data=$output_folder/$report_file.$threadid
     generate_report $thread_stage_data $thread_report_data
+    check_and_exit
 
     echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 7. clean up the temporary files
-    if $cleanup; then
-        rm -f $thread_raw_data $thread_pure_data $thread_trans_data $thread_stage_data
-    fi
+    clean_files $thread_raw_data $thread_pure_data $thread_trans_data
 done
 
 # 8. clean up index file
-if $cleanup; then
-    rm -f $thread_index_file
-fi
+clean_files $thread_index_file
