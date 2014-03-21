@@ -5,12 +5,14 @@ import os
 import getopt
 import string
 import pprint
+import re
 
 # user input args
 trace_file = ""
-sym_filters = []
+sym_filter = None
 file_filters = []
 path_level = -1
+DEBUG=False
 
 # global variables
 process_start = False
@@ -198,23 +200,13 @@ def gen_report(file, prefix, call_list, skip):
 # NOTE: for C, the funcname is the function name
 #       for C++, the funcname means a class name or namespace name
 def sym_should_skip(raw_func_name):
-    func_name = ""
-
-    # if :: in func name, that means it's C++ function
-    if "::" in raw_func_name:
-        func_name = raw_func_name.split("::")[0]
-        func_name = func_name.split(" ")
-        if len(func_name) == 2:
-            func_name = func_name[1]
-        else:
-            func_name = func_name[0]
-    else:
-        func_name = raw_func_name
-
-    if func_name in sym_filters:
-        return True
-    else:
+    if not sym_filter:
         return False
+    else:
+        if sym_filter.match(raw_func_name):
+            return True
+        else:
+            return False
 
 def file_should_skip(raw_func_location):
 
@@ -271,7 +263,7 @@ def dump_graph(call_graph):
 
 
 def usage():
-    print "usage: formatter.py -f trace.txt [-s sym_filter[, sym_filters...]] [-S file_filter[, file_filters...]] [-p level]"
+    print "usage: formatter.py -f trace.txt [-s sym_filter] [-S file_filter[, file_filters...]] [-p level] [-v]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -279,7 +271,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:p:")
+        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:p:v")
 
         for op, value in opts:
             if op == "-h":
@@ -287,12 +279,16 @@ if __name__ == "__main__":
             elif op == "-f":
                 trace_file = value
             elif op == '-s':
-                sym_filters = value.split(",")
+                sym_filter = re.compile(value)
             elif op == '-S':
                 file_filters = value.split(",")
             elif op == '-p':
                 path_level = int(value)
-    except:
+            elif op == '-v':
+                DEBUG = True
+
+    except Exception, e:
+        print "Fatal: " + str(e)
         usage()
         sys.exit(1)
 

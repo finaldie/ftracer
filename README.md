@@ -75,11 +75,11 @@ make CFLAGS="-g -finstrument-functions"
 Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
 boost... so we should filter them out
 
-* `-s` Filter by symbol
+* `-s` Regex Symbol Filter
 
     For this, you should use `-s` arg, for example:
     ```
-    gen_report.sh -e app -f /tmp/trace.txt -s std
+    gen_report.sh -e app -f /tmp/trace.txt -s "^std::"
     ```
 * `-S` Filter by file/path
 

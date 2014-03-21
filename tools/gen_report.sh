@@ -28,11 +28,11 @@ function debug_print()
 
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
-    echo " \_ -s: the symbol filters, for example: std,boost"
+    echo " \_ -s: the regex symbol filter, for example: -s \"^std::\""
     echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
@@ -165,6 +165,10 @@ function generate_report()
 
     if [ -n "$path_level" ]; then
         args=$args" -p $path_level"
+    fi
+
+    if $debug; then
+        args=$args" -v"
     fi
 
     ./formatter.py -f $input $args > $output
