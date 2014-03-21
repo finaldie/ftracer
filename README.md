@@ -10,7 +10,7 @@ Please note that, the tracer works for you in the following scenarios:
 * You need a time-line based call graph
 * You are dealing with a single thread program
 
-**If NOT, please leave this.**
+**If NOT, please leave.**
 
 # How to Use it
 ## Check out
