@@ -78,37 +78,37 @@ make CFLAGS="-g -finstrument-functions"
 Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
 boost... so we should filter them out
 
-* -s Filter by symbol
+* `-s` Filter by symbol
 
     For this, you should use `-s` arg, for example:
     ```
     gen_report.sh -e app -f /tmp/trace.txt -s std
     ```
-* -S Filter by file/path
+* `-S` Filter by file/path
 
     For this, the `-S` arg will help you, for example if you want to filter all the c++ related information out, you should:
     ```
     gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
     ```
-* -p Keep at most N level of path
+* `-p` Keep at most N level of path
 
     If a path is too long, it will be a noise for us, so the -p parameter will help to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`, use `-p 1` the path in the report will be `c/d.c`.<br>
     If no `-p` or `-p` value is a negative number, this feature will be ignore
 
-* -o Specific output folder
+* `-o` Specific output folder
 
     The default output folder is `/tmp`, but if you want to specific another folder, 
     `-o output` will help you.
 
-* -d Don't cleanup the temporay data
+* `-d` Don't cleanup the temporay data
 
     If you get wrong data when you run `gen_report.sh`, the temporay data will help you to debug what's happened, so if you want to debug it, pass the `-d` paramter.
 
-* -D Show debug info
+* `-D` Show debug info
 
     If you need more information during the report generating, you can pass -D in
     
-* -t Start N process to generate report
+* `-t` Start N process to generate report
 
     The addr2line is slow, sometimes you need to start N process to generate the report in parallel, it will reduce the generating time. For example `-t 4`
 
