@@ -249,8 +249,12 @@ def getFuncLocation(func_loc):
 
     return display_func_loc
 
-def getPrefix(prefix):
-    return "".join(default_prefix_str for i in range(prefix))
+def getPrefix(level):
+    prefix = ""
+    for i in range(level):
+        prefix += default_prefix_str
+
+    return prefix
 
 def dump_graph(call_graph):
     for frame in call_graph:
