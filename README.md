@@ -15,7 +15,7 @@ Please note that, the tracer works for you in the following scenarios:
 # How to Use it
 ## Check out
 ```bash
-git clone git@github.com:username/ftracer.git
+git clone git@github.com:finaldie/ftracer.git
 ```
 
 ## Compile ftracer
