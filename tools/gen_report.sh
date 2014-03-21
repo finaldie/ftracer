@@ -170,6 +170,27 @@ function generate_report()
     ./formatter.py -f $input $args > $output
 }
 
+function try_generate_report()
+{
+    local stg_files_cnt=`ls $output_folder | grep $stage_file | wc -l`
+    if [ $stg_files_cnt -eq 0 ]; then
+        return
+    fi
+
+    ls $output_folder | grep $stage_file | while read stage_data; do
+        found=true
+
+        local threadid=`basename $stage_data | awk -F '.' '{print $2}'`
+        local thread_report_data=$output_folder/$report_file.$threadid
+        debug_print "found stage file: $stage_data, generate report directly"
+
+        generate_report $output_folder/$stage_data $thread_report_data
+        echo "thread($threadid) report generate complete at $thread_report_data"
+    done
+
+    exit 0
+}
+
 function translate_process()
 {
     local input=$1
@@ -267,36 +288,51 @@ function translate_multi_process()
     fi
 }
 
+# __main__
 read_args $@
 check_args
 
+# 0. if the stage data already exist, generate the report directly
+debug_print "phase 0: search stage file and try to generate report directly"
+try_generate_report
+
 # 1. get how many threads
+debug_print "phase 1: generate thread index file"
 thread_index_file=$output_folder/$index_file
 cat $trace_file | awk -F '|' '{print $1}' | sort | uniq -c | sort > $thread_index_file
 
-# 2. dump the data into per-thread file
+# dump the data into per-thread file
 cat $thread_index_file | while read size threadid;
 do
+    debug_print "--------------------------------------------------------------"
+    debug_print "start to process the data for thread id: $threadid, lines: $size"
+
+    # 2. split data into per-thread file
+    debug_print "phase 2: generate raw data"
     thread_raw_data=$output_folder/$raw_data_file.$threadid
     cat $trace_file | grep "^$threadid" | awk -F '|' '{printf "%s|%s|%s\n", $2, $3, $4}' > $thread_raw_data
     check_and_exit
 
     # 3. filter the raw data, get the pure data for next step
+    debug_print "phase 3: generate pure data"
     thread_pure_data=$output_folder/$pure_data_file.$threadid
     ./filter.py -f $thread_raw_data > $thread_pure_data
     check_and_exit
 
     # 4. translate addrs to the function name and caller information
+    debug_print "phase 4: translate func and caller info"
     thread_trans_data=$output_folder/$translate_data_file.$threadid
     translate_process $thread_pure_data $thread_trans_data $size
     check_and_exit
 
     # 5. paste it with orignal trace data and generate the new data
+    debug_print "phase 5: merge translation data with pure data"
     thread_stage_data=$output_folder/$stage_file.$threadid
     paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s\n", $1, $4, $5, $6}' > $thread_stage_data
     check_and_exit
 
     # 6. generate the final report for this thread (plain text)
+    debug_print "phase 6: generate report"
     thread_report_data=$output_folder/$report_file.$threadid
     generate_report $thread_stage_data $thread_report_data
     check_and_exit
@@ -304,8 +340,10 @@ do
     echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 7. clean up the temporary files
+    debug_print "clean up the tempoary files: $thread_raw_data $thread_pure_data $thread_trans_data"
     clean_files $thread_raw_data $thread_pure_data $thread_trans_data
 done
 
 # 8. clean up index file
+debug_print "clean up the index file: $thread_index_file"
 clean_files $thread_index_file

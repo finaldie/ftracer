@@ -155,9 +155,9 @@ def gen_report(file, prefix, call_list, skip):
             # if the parent has not been skipped, let check current frame whether
             # or not should be skipped
             should_skip = False
-            if sym_should_skip(func_name):
+            if file_should_skip(func_location):
                 should_skip = True
-            elif file_should_skip(func_location):
+            elif sym_should_skip(func_name):
                 should_skip = True
 
             if should_skip:
