@@ -186,9 +186,9 @@ function translate_multi_process()
 
     # fork to multi process to process it
     local per_thread_size=`expr $size "/" $threads`
-    for i in $(seq 1 $threads);
-    do
+    for i in $(seq 1 $threads); do
         local partition=$output.$i
+        local status_file=$output.$i.status
 
         # if this is the last thread, it should consume all the last data
         local partition_size=$per_thread_size
@@ -202,16 +202,31 @@ function translate_multi_process()
         local start=`expr $mul "*" $per_thread_size "+" 1`
 
         # for every thread, it will read its partition lines
-        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $partition &
+        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | ./trans_status.awk -vstatus_file=$status_file -vsize=$partition_size > $partition &
     done
 
     # wait until all the sub jobs finish
     while true; do
-        debug_print `jobs`
+        local complete_count=0
+        # clear last buffer
+        echo -ne "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
 
-        local unfinish=`jobs -p | wc -l`
-        if [ $unfinish -eq 0 ]; then
-            echo "all the translation sub jobs finished"
+        for i in $(seq 1 $threads); do
+            local status_file=$output.$i.status
+            local partition_status="0"
+            if [ -e $status_file ]; then
+                partitions_status=`tail -1 $status_file`
+            fi
+
+            echo -n "[p$i]: $partitions_status% "
+
+            if [ "$partitions_status" = "100" ]; then
+                complete_count=`expr $complete_count "+" 1`
+            fi
+        done
+
+        if [ $complete_count -eq $threads ]; then
+            echo -e "\nall the translation sub jobs finished"
             break
         fi
 
@@ -219,14 +234,21 @@ function translate_multi_process()
     done
 
     # merge all the partitions into output
-    for i in $(seq 1 $threads);
-    do
+    for i in $(seq 1 $threads); do
         local partition=$output.$i
 
         cat $partition >> $output
     done
 
-    echo "translation job finished"
+    # clean up the tempoary data
+    if $cleanup; then
+        for i in $(seq 1 $threads); do
+            local partition=$output.$i
+            local status_file=$output.$i.status
+
+            rm -f $partition $status_file
+        done
+    fi
 }
 
 read_args $@
