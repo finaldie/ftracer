@@ -8,6 +8,8 @@ file_filters=
 path_level=
 output_folder=/tmp
 cleanup=true
+threads=1
+debug=false
 
 # static variables
 raw_data_file=trace_raw_data
@@ -17,9 +19,16 @@ stage_file=trace_stage_data
 report_file=trace_report
 index_file=trace_thread_index.txt
 
+function debug_print()
+{
+    if $debug; then
+        echo $@
+    fi
+}
+
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-i]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter[, filters...]] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-D]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
@@ -28,6 +37,9 @@ function usage()
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
     echo " \_ -d: ignore cleanup the tempoary data, this will help you to debug the tool"
+    echo " \_ -D: show debug info"
+    echo " \_ -t: specific how many threads you want to use, it will speed up when the data is too big"
+    echo " \_ -h: show the usage"
 }
 
 function check_args()
@@ -70,11 +82,18 @@ function check_args()
             rm -f $output_folder/t
         fi
     fi
+
+    echo $threads | grep -P "^[1-9]+$" 2>&1 > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Error: the -t parameter must be a positive number"
+        usage
+        exit 1
+    fi
 }
 
 function read_args()
 {
-    while getopts "e:f:S:s:p:o:i" ARGS
+    while getopts "e:f:S:s:p:o:dht:D" ARGS
     do
         case $ARGS in
             e)
@@ -97,6 +116,16 @@ function read_args()
                 ;;
             d)
                 cleanup=false
+                ;;
+            h)
+                usage
+                exit
+                ;;
+            t)
+                threads=$OPTARG
+                ;;
+            D)
+                debug=true
                 ;;
             *)
                 exit
@@ -127,6 +156,78 @@ function generate_report()
     ./formatter.py -f $input $args > $output
 }
 
+function translate_process()
+{
+    local input=$1
+    local output=$2
+    local size=$3
+
+    if [ $threads -eq 1 ]; then
+        translate_single_process $input $output $size
+    else
+        translate_multi_process $input $output $size
+    fi
+}
+
+function translate_single_process()
+{
+    local input=$1
+    local output=$2
+    local size=$3
+
+    cat $input | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $output
+}
+
+function translate_multi_process()
+{
+    local input=$1
+    local output=$2
+    local size=$3
+
+    # fork to multi process to process it
+    local per_thread_size=`expr $size "/" $threads`
+    for i in $(seq 1 $threads);
+    do
+        local partition=$output.$i
+
+        # if this is the last thread, it should consume all the last data
+        local partition_size=$per_thread_size
+        if [ $i -eq $threads ]; then
+            local last_lines=`expr $size "-" $i "*" $per_thread_size`
+            partition_size=`expr $partition_size "+" $last_lines`
+        fi
+
+        # caculate the start line
+        local mul=`expr $i "-" 1`
+        local start=`expr $mul "*" $per_thread_size "+" 1`
+
+        # for every thread, it will read its partition lines
+        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $partition &
+    done
+
+    # wait until all the sub jobs finish
+    while true; do
+        debug_print `jobs`
+
+        local unfinish=`jobs -p | wc -l`
+        if [ $unfinish -eq 0 ]; then
+            echo "all the translation sub jobs finished"
+            break
+        fi
+
+        sleep 1
+    done
+
+    # merge all the partitions into output
+    for i in $(seq 1 $threads);
+    do
+        local partition=$output.$i
+
+        cat $partition >> $output
+    done
+
+    echo "translation job finished"
+}
 
 read_args $@
 check_args
@@ -147,7 +248,7 @@ do
 
     # 4. translate addrs to the function name and caller information
     thread_trans_data=$output_folder/$translate_data_file.$threadid
-    cat $thread_pure_data | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $thread_trans_data
+    translate_process $thread_pure_data $thread_trans_data $size
 
     # 5. paste it with orignal trace data and generate the new data
     thread_stage_data=$output_folder/$stage_file.$threadid
