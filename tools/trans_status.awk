@@ -6,11 +6,7 @@ BEGIN {
     print total > status_file;
 }
 {
-    if (NR % 1000 == 0) {
-        current = (NR / size) * 100;
-    } else if (NR == size) {
-        current = 100;
-    }
+    current = (NR / size) * 100;
 
     if (total != current) {
         total = current;

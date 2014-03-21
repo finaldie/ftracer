@@ -208,8 +208,7 @@ function translate_multi_process()
     # wait until all the sub jobs finish
     while true; do
         local complete_count=0
-        # clear last buffer
-        echo -ne "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+        local status_list=()
 
         for i in $(seq 1 $threads); do
             local status_file=$output.$i.status
@@ -218,12 +217,15 @@ function translate_multi_process()
                 partitions_status=`tail -1 $status_file`
             fi
 
-            echo -n "[p$i]: $partitions_status% "
+            status_list[$i]="[p$i]: $partition_status"
 
             if [ "$partitions_status" = "100" ]; then
                 complete_count=`expr $complete_count "+" 1`
             fi
         done
+
+        # print the status bar
+        echo -en "\r${status_list[*]}"
 
         if [ $complete_count -eq $threads ]; then
             echo -e "\nall the translation sub jobs finished"
