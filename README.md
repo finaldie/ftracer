@@ -13,9 +13,6 @@ Please note that, the tracer works for you in the following scenarios:
 **If NOT, please leave this.**
 
 # How to Use it
-## Fork
-click the button `Fork` in the page
-
 ## Check out
 ```bash
 git clone git@github.com:username/ftracer.git
