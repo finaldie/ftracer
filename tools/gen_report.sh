@@ -18,7 +18,9 @@ pure_data_file=trace_pure_data
 translate_data_file=trace_trans_file
 stage_file=trace_stage_data
 report_file=trace_report
+html_report_folder=html
 index_file=trace_thread_index.txt
+template_folder=./template
 
 function debug_print()
 {
@@ -120,6 +122,19 @@ function check_args()
             usage
             exit 1
         fi
+
+        local html_output_folder=$output_folder/$html_report_folder
+        if [ "$output_format" = "html" ]; then
+            mkdir -p $html_output_folder
+            if [ $? -ne 0 ]; then
+                echo "Error: cannot create html output folder: $output_folder/$html_report_folder"
+                usage
+                exit 1
+            fi
+
+            cp $template_folder/ftracer.css $html_output_folder
+            cp $template_folder/ftracer.js $html_output_folder
+        fi
     fi
 }
 
@@ -197,6 +212,18 @@ function generate_report()
     fi
 
     ./formatter.py -f $input $args > $output
+
+    if [ "$output_format" = "html" ]; then
+        local html_folder=$output_folder/$html_report_folder
+        local html_output=$html_folder/`basename $output`.html
+        cat $template_folder/html_header.html >> $html_output
+        cat $output >> $html_output
+        cat $template_folder/html_tailer.html >> $html_output
+
+        echo "thread($threadid) report generate complete at $html_output"
+    else
+        echo "thread($threadid) report generate complete at $output"
+    fi
 }
 
 function try_generate_report()
@@ -226,7 +253,7 @@ function translate_process()
     local output=$2
     local size=$3
 
-    if [ $threads -eq 1 ]; then
+    if [ $threads -eq 1 ] || [ $size -lt $threads ]; then
         translate_single_process $input $output $size
     else
         translate_multi_process $input $output $size
@@ -265,6 +292,7 @@ function translate_multi_process()
         local mul=`expr $i "-" 1`
         local start=`expr $mul "*" $per_thread_size "+" 1`
 
+        debug_print "partition$i: start=$start lines=$partition_size total_size=$size"
         # for every thread, it will read its partition lines
         tail -n +$start $input | head -$partition_size | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | ./trans_status.awk -vstatus_file=$status_file -vsize=$partition_size > $partition &
     done
@@ -365,8 +393,6 @@ do
     thread_report_data=$output_folder/$report_file.$threadid
     generate_report $thread_stage_data $thread_report_data
     check_and_exit
-
-    echo "thread($threadid) report generate complete at $thread_report_data"
 
     # 7. clean up the temporary files
     debug_print "clean up the tempoary files: $thread_raw_data $thread_pure_data $thread_trans_data"

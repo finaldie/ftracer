@@ -278,9 +278,11 @@ def dump_graph_to_html(call_graph):
         display_func_loc = getFuncLocation(frame['func_location'])
 
         if frame['next']:
-            print "<li><div id=Folder%d class=\"ExpandCollapse\">+</div><div class=\"Folder\">%dx %s(%s) - (called from %s)</div></li>" % (html_attr_id,
+            print "<li><div id=Folder%d class=\"ExpandCollapse\">+</div><div id=\"Content%d\" class=\"FolderContent\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
+                    html_attr_id,
                     frame['times'],
                     cgi.escape(frame['func_name']),
+                    html_attr_id,
                     display_func_loc,
                     frame['caller_location'])
             print "<ul id=\"ExpandCollapseFolder%d\">" % html_attr_id
@@ -288,10 +290,12 @@ def dump_graph_to_html(call_graph):
             dump_graph_to_html(frame['next'])
             print "</ul>"
         else:
-            print "<li><div class=\"Normal\">*</div>%dx %s(%s) - (called from %s)</li>" % (frame['times'],
-                                                              cgi.escape(frame['func_name']),
-                                                              display_func_loc,
-                                                              frame['caller_location'])
+            print "<li><div class=\"Normal\">*</div><div id=\"Content%d\" class=\"Content\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
+                    frame['times'],
+                    cgi.escape(frame['func_name']),
+                    html_attr_id,
+                    display_func_loc,
+                    frame['caller_location'])
 
 def dump_graph(call_graph):
     if output_format == PLAIN_OUTPUT:

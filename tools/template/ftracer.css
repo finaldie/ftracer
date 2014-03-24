@@ -1,0 +1,13 @@
+#Quickview {
+    position: absolute;
+    font-family: verdana;
+    font-size: 12px;
+    top: 0px;
+    left: 0px;
+    padding: 5px 5px 5px 5px;
+    border: 1px solid orange;
+    background-color: wheat;
+    color: orange;
+    display: none;
+    z-index: 20000;
+}
