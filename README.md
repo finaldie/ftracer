@@ -109,6 +109,10 @@ boost... so we should filter them out
 
     The addr2line is slow, sometimes you need to start N process to generate the report in parallel, it will reduce the generating time. For example `-t 4`
 
+* `-F` output format
+
+    Default output format is `plain`, and you also can specific `html` format, this will be great help when you are dealing with a very big call graph
+
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
 ```c

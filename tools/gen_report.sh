@@ -3,13 +3,14 @@
 # user input args
 exe=
 trace_file=
-sym_filters=
+sym_filter=
 file_filters=
 path_level=
 output_folder=/tmp
 cleanup=true
 threads=1
 debug=false
+output_format=
 
 # static variables
 raw_data_file=trace_raw_data
@@ -28,7 +29,7 @@ function debug_print()
 
 function usage()
 {
-    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v]"
+    echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v] [-F format]"
     echo " Parameters:"
     echo " \_ -e: the application"
     echo " \_ -f: the trace file"
@@ -36,6 +37,7 @@ function usage()
     echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
     echo " \_ -p: the keep at most N level of path, it must be a number"
     echo " \_ -o: output folder, default is /tmp"
+    echo " \_ -F: output format, plain(default) or html"
     echo " \_ -d: ignore cleanup the tempoary data, this will help you to debug the tool"
     echo " \_ -v: show debug info"
     echo " \_ -t: specific how many threads you want to use, it will speed up when the data is too big"
@@ -62,10 +64,18 @@ function check_args()
         echo "Error: the -e parameter is required"
         usage
         exit 1
+    elif [ ! -x "$exe" ]; then
+        echo "Error: the -e parameter need a execution file"
+        usage
+        exit 1
     fi
 
     if [ -z "$trace_file" ]; then
         echo "Error: the -f parameter is required"
+        usage
+        exit 1
+    elif [ ! -r "$trace_file" ]; then
+        echo "Error: the -f paramter need a readable trace data file"
         usage
         exit 1
     fi
@@ -86,15 +96,15 @@ function check_args()
             usage
             exit 1
         fi
+    fi
 
-        touch $output_folder/t
-        if [ $? -ne 0 ]; then
-            echo "Error: output folder $output_folder is not writable"
-            usage
-            exit 1
-        else
-            rm -f $output_folder/t
-        fi
+    touch $output_folder/t
+    if [ $? -ne 0 ]; then
+        echo "Error: output folder $output_folder is not writable"
+        usage
+        exit 1
+    else
+        rm -f $output_folder/t
     fi
 
     echo $threads | grep -P "^[1-9]+$" 2>&1 > /dev/null
@@ -103,11 +113,19 @@ function check_args()
         usage
         exit 1
     fi
+
+    if [ ! -z "$output_format" ]; then
+        if [ ! "$output_format" = "plain" ] && [ ! "$output_format" = "html" ]; then
+            echo "Error: the -F paramter must be plain or html"
+            usage
+            exit 1
+        fi
+    fi
 }
 
 function read_args()
 {
-    while getopts "e:f:S:s:p:o:dht:v" ARGS
+    while getopts "e:f:S:s:p:o:dht:vF:" ARGS
     do
         case $ARGS in
             e)
@@ -117,7 +135,7 @@ function read_args()
                 trace_file=$OPTARG
                 ;;
             s)
-                sym_filters=$OPTARG
+                sym_filter=$OPTARG
                 ;;
             S)
                 file_filters=$OPTARG
@@ -141,6 +159,9 @@ function read_args()
             v)
                 debug=true
                 ;;
+            F)
+                output_format=$OPTARG
+                ;;
             *)
                 exit
                 ;;
@@ -155,8 +176,8 @@ function generate_report()
     local output=$2
     local args=""
 
-    if [ -n "$sym_filters" ]; then
-        args=$args" -s $sym_filters"
+    if [ -n "$sym_filter" ]; then
+        args=$args" -s $sym_filter"
     fi
 
     if [ -n "$file_filters" ]; then
@@ -169,6 +190,10 @@ function generate_report()
 
     if $debug; then
         args=$args" -v"
+    fi
+
+    if [ -n "$output_format" ]; then
+        args=$args" -F $output_format"
     fi
 
     ./formatter.py -f $input $args > $output

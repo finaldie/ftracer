@@ -6,17 +6,24 @@ import getopt
 import string
 import pprint
 import re
+import cgi
+
+# static variables
+PLAIN_OUTPUT = "plain"
+HTML_OUTPUT = "html"
 
 # user input args
 trace_file = ""
 sym_filter = None
 file_filters = []
 path_level = -1
-DEBUG=False
+DEBUG = False
+output_format = PLAIN_OUTPUT
 
 # global variables
 process_start = False
 default_prefix_str = ".."
+html_attr_id = 0
 
 # To understand the basic working flow, let's see an example, if there is a call
 # graph like:
@@ -248,7 +255,7 @@ def getPrefix(level):
 
     return prefix
 
-def dump_graph(call_graph):
+def dump_graph_to_plain(call_graph):
     for frame in call_graph:
         # filter path by path_level
         display_func_loc = getFuncLocation(frame['func_location'])
@@ -259,11 +266,43 @@ def dump_graph(call_graph):
                                                     frame['func_name'],
                                                     display_func_loc,
                                                     frame['caller_location'])
-        dump_graph(frame['next'])
 
+        dump_graph_to_plain(frame['next'])
+
+def dump_graph_to_html(call_graph):
+    global html_attr_id
+
+    for frame in call_graph:
+        html_attr_id += 1
+
+        display_func_loc = getFuncLocation(frame['func_location'])
+
+        if frame['next']:
+            print "<li><div id=Folder%d class=\"ExpandCollapse\">+</div><div class=\"Folder\">%dx %s(%s) - (called from %s)</div></li>" % (html_attr_id,
+                    frame['times'],
+                    cgi.escape(frame['func_name']),
+                    display_func_loc,
+                    frame['caller_location'])
+            print "<ul id=\"ExpandCollapseFolder%d\">" % html_attr_id
+
+            dump_graph_to_html(frame['next'])
+            print "</ul>"
+        else:
+            print "<li>  %dx %s(%s) - (called from %s)</li>" % (frame['times'],
+                                                              cgi.escape(frame['func_name']),
+                                                              display_func_loc,
+                                                              frame['caller_location'])
+
+def dump_graph(call_graph):
+    if output_format == PLAIN_OUTPUT:
+        dump_graph_to_plain(call_graph)
+    elif output_format == HTML_OUTPUT:
+        global html_attr_id
+        html_attr_id = 0
+        dump_graph_to_html(call_graph)
 
 def usage():
-    print "usage: formatter.py -f trace.txt [-s sym_filter] [-S file_filter[, file_filters...]] [-p level] [-v]"
+    print "usage: formatter.py -f trace.txt [-s sym_filter] [-S file_filter[, file_filters...]] [-p level] [-v] [-F format]"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -271,7 +310,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:p:v")
+        opts, args = getopt.getopt(sys.argv[1:], "hf:s:S:p:vF:")
 
         for op, value in opts:
             if op == "-h":
@@ -286,6 +325,8 @@ if __name__ == "__main__":
                 path_level = int(value)
             elif op == '-v':
                 DEBUG = True
+            elif op == "-F":
+                output_format = value
 
     except Exception, e:
         print "Fatal: " + str(e)
