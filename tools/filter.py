@@ -13,82 +13,13 @@ trace_file = ""
 
 process_start = False
 
-# To understand the basic working flow, let's see an example, if there is a call
-# graph like:
-#a
-#|--b
-#|  |--c
-#|--b
-#|  |--d
-#|  |--d
-#|  |--e
-
-# And, the data sturcture will be like this:
-#{
-#    func = "xx",
-#    caller = "xx",
-#    next = [],
-#}
-#
-# So the full memory data will be:
-#[
-#    {
-#        func = "a",
-#        caller = "xx",
-#        next = [
-#            {
-#                func = "b",
-#                caller = "xx",
-#                next = [
-#                    {
-#                        func = "c",
-#                        caller = "xx",
-#                        next = []
-#                    }
-#                ]
-#            },
-#            {
-#                func = "b",
-#                caller = "xx",
-#                times = 1,
-#                next = [
-#                    {
-#                        func = "d",
-#                        caller = "xx",
-#                        next = []
-#                    },
-#                    {
-#                        func = "d",
-#                        caller = "xx",
-#                        next = []
-#                    },
-#                    {
-#                        func = "e",
-#                        caller = "xx",
-#                        next = []
-#                    }
-#                ]
-#            }
-#        ]
-#    }
-#]
-
 def load_trace_file():
     try:
         file = open(trace_file, "r")
 
-        call_graph = []
-        gen_report(file, call_graph)
-        dump_graph(call_graph)
+        filter_graph(file)
     finally:
         file.close()
-
-def create_frame(func, caller):
-    return {
-        'func' : func,
-        'caller' : caller,
-        'next' : []
-    }
 
 def should_skip_line(type):
     global process_start
@@ -101,7 +32,7 @@ def should_skip_line(type):
     else:
         return False
 
-def gen_report(file, call_list):
+def filter_graph(file):
     while True:
         line = file.readline()
         if not line:
@@ -121,28 +52,16 @@ def gen_report(file, call_list):
 
         # we entry into next call
         if type == "E":
-            frame = create_frame(func, caller)
-            call_list.append(frame)
-
-            gen_report(file, frame['next'])
+            print "E|%s|%s" % (func, caller)
+            filter_graph(file)
 
         # we exit from a call
         elif type == "X":
+            print "X|%s|%s" % (func, caller)
             return
 
-
-def dump_graph(call_graph):
-    for frame in call_graph:
-        print "E|%s|%s" % (frame['func'],
-                           frame['caller'])
-
-        dump_graph(frame['next'])
-
-        print "X|0x0|0x0"
-
-
 def usage():
-    print "usage: filter.py [-f trace.txt]"
+    print "usage: filter.py -f trace.txt"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -154,10 +73,13 @@ if __name__ == "__main__":
 
         for op, value in opts:
             if op == "-h":
+                usage()
                 sys.exit(0)
             elif op == "-f":
                 trace_file = value
-    except:
+
+    except Exception, e:
+        print "Fatal: " + str(e)
         usage()
         sys.exit(1)
 
