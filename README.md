@@ -103,7 +103,7 @@ boost... so we should filter them out
 
 * `-v` Show debug info
 
-    If you need more information during the report generating, you can pass -D in
+    If you need more information during the report generating, you can pass `-v` in
 
 * `-t` Start N process to generate report
 
@@ -111,7 +111,7 @@ boost... so we should filter them out
 
 * `-F` output format
 
-    Default output format is `plain`, and you also can specific `html` format, this will be great help when you are dealing with a very big call graph
+    Default output format is `plain`, and you also can specific `html` format, for example `-F html`, this will be great help when you are dealing with a very big call graph.
 
 # Enjoy and Analysis the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
