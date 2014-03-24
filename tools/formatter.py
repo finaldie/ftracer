@@ -288,7 +288,7 @@ def dump_graph_to_html(call_graph):
             dump_graph_to_html(frame['next'])
             print "</ul>"
         else:
-            print "<li>  %dx %s(%s) - (called from %s)</li>" % (frame['times'],
+            print "<li><div class=\"Normal\">*</div>%dx %s(%s) - (called from %s)</li>" % (frame['times'],
                                                               cgi.escape(frame['func_name']),
                                                               display_func_loc,
                                                               frame['caller_location'])
