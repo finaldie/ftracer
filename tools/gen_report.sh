@@ -317,7 +317,7 @@ function translate_multi_process()
         done
 
         # print the status bar
-        echo -en "\r${status_list[*]}"
+        echo -en "\r\033[K${status_list[*]}"
 
         if [ $complete_count -eq $threads ]; then
             echo -e "\nall the translation sub jobs finished"
