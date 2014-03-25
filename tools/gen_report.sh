@@ -359,10 +359,10 @@ thread_index_file=$output_folder/$index_file
 cat $trace_file | awk -F '|' '{print $1}' | sort | uniq -c | sort > $thread_index_file
 
 # dump the data into per-thread file
-cat $thread_index_file | while read size threadid;
+cat $thread_index_file | while read rawsize threadid;
 do
     debug_print "--------------------------------------------------------------"
-    debug_print "start to process the data for thread id: $threadid, lines: $size"
+    debug_print "start to process the data for thread id: $threadid, raw lines: $rawsize"
 
     # 2. split data into per-thread file
     debug_print "phase 2: generate raw data"
@@ -377,7 +377,8 @@ do
     check_and_exit
 
     # 4. translate addrs to the function name and caller information
-    debug_print "phase 4: translate func and caller info"
+    size=`wc -l $thread_pure_data | awk '{print $1}'`
+    debug_print "phase 4: translate func and caller info, pure data size: $size"
     thread_trans_data=$output_folder/$translate_data_file.$threadid
     translate_process $thread_pure_data $thread_trans_data $size
     check_and_exit
