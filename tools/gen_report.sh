@@ -356,7 +356,7 @@ try_generate_report
 # 1. get how many threads
 debug_print "phase 1: generate thread index file"
 thread_index_file=$output_folder/$index_file
-cat $trace_file | awk -F '|' '{print $1}' | sort | uniq -c | sort > $thread_index_file
+cat $trace_file | awk -F '|' '{print $1}' | sort | uniq -c | sort -n > $thread_index_file
 
 # dump the data into per-thread file
 cat $thread_index_file | while read rawsize threadid;
