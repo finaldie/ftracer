@@ -57,7 +57,9 @@ def filter_graph(file):
 
         # we exit from a call
         elif type == "X":
-            print "X|%s|%s" % (func, caller)
+            # to optimize the performance(addr2line is slow), write 0x0 address
+            # instead of a real one
+            print "X|0x0|0x0"
             return
 
 def usage():

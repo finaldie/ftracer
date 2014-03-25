@@ -55,7 +55,7 @@ void _dump_profile_exit_info(void* function, void* caller)
 
     pthread_mutex_lock(&_fmutex);
 
-    int n = fprintf(__fp, "%lu|X|%s|%s\n", current, TRACE_NULL, TRACE_NULL);
+    int n = fprintf(__fp, "%lu|X|%s|%s\n", current, function, caller);
     if (n < 0) {
         printf("dump exit trace info failed: %s\n", strerror(errno));
     }
