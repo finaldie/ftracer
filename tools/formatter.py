@@ -24,6 +24,7 @@ output_format = PLAIN_OUTPUT
 process_start = False
 default_prefix_str = ".."
 html_attr_id = 0
+lineno = 0
 
 # To understand the basic working flow, let's see an example, if there is a call
 # graph like:
@@ -132,11 +133,15 @@ def should_skip_line(type):
         return False
 
 def gen_report(file, prefix, call_list, skip):
+    global lineno
+
     while True:
         line = file.readline()
         if not line:
-            return
+            return None, None, -1
 
+        lineno += 1
+        curr_lineno = lineno
         value_list = line.strip('\n').split('|')
 
         # get the data from one line
@@ -148,17 +153,20 @@ def gen_report(file, prefix, call_list, skip):
 
         # func_name and func_location is the primary key to identify a unique
         # function
-        func_name = value_list[1]
-        func_location = value_list[2]
-        caller_location = os.path.basename(value_list[3])
+        func_addr = value_list[1]
+        caller_addr = value_list[2]
+        func_name = value_list[3]
+        func_location = value_list[4]
+        caller_location = os.path.basename(value_list[5])
 
         # we entry into next call
-        # NOTE: in the enter stage('E'), we must not using return, since we always
-        # should return from exit stage('X')
         if type == "E":
             # if skip is true, means the parent already been skipped
             if skip:
-                gen_report(file, 0, [], True)
+                exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
+                if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
+                    print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+
                 continue
 
             # if the parent has not been skipped, let check current frame whether
@@ -170,14 +178,19 @@ def gen_report(file, prefix, call_list, skip):
                 should_skip = True
 
             if should_skip:
-                gen_report(file, 0, [], True)
+                exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
+                if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
+                    print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+
                 continue
 
             # Ok, for now, the current frame has not been skipped, let's prepare
             # a frame for it
             frame = create_frame(prefix, func_name, func_location, caller_location)
 
-            gen_report(file, frame['prefix'] + 1, frame['next'], False)
+            exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, frame['prefix'] + 1, frame['next'], False)
+            if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
+                print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
 
             # if the last frame is equal to the next_call_list, we only need to
             # increase the times counter in the frame
@@ -199,9 +212,8 @@ def gen_report(file, prefix, call_list, skip):
                     call_list.append(frame)
 
         # we exit from a call
-        # NOTE: this is the only exit point for this function
         elif type == "X":
-            return
+            return func_addr, caller_addr, curr_lineno
 
 # if the frame funcname is in skipping list, then return True, or False
 # NOTE: for C, the funcname is the function name

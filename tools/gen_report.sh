@@ -234,14 +234,11 @@ function try_generate_report()
     fi
 
     ls $output_folder | grep $stage_file | while read stage_data; do
-        found=true
-
         local threadid=`basename $stage_data | awk -F '.' '{print $2}'`
         local thread_report_data=$output_folder/$report_file.$threadid
         debug_print "found stage file: $stage_data, generate report directly"
 
         generate_report $output_folder/$stage_data $thread_report_data
-        echo "thread($threadid) report generate complete at $thread_report_data"
     done
 
     exit 0
@@ -266,7 +263,7 @@ function translate_single_process()
     local output=$2
     local size=$3
 
-    cat $input | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $output
+    cat $input | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $output
 }
 
 function translate_multi_process()
@@ -294,7 +291,7 @@ function translate_multi_process()
 
         debug_print "partition$i: start=$start lines=$partition_size total_size=$size"
         # for every thread, it will read its partition lines
-        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $2, $3}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | ./trans_status.awk -vstatus_file=$status_file -vsize=$partition_size > $partition &
+        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | ./trans_status.awk -vstatus_file=$status_file -vsize=$partition_size > $partition &
     done
 
     # wait until all the sub jobs finish
@@ -365,33 +362,33 @@ do
     debug_print "start to process the data for thread id: $threadid, raw lines: $rawsize"
 
     # 2. split data into per-thread file
-    debug_print "phase 2: generate raw data"
     thread_raw_data=$output_folder/$raw_data_file.$threadid
+    debug_print "phase 2: generate raw data($thread_raw_data)"
     cat $trace_file | grep "^$threadid" | awk -F '|' '{printf "%s|%s|%s\n", $2, $3, $4}' > $thread_raw_data
     check_and_exit
 
     # 3. filter the raw data, get the pure data for next step
-    debug_print "phase 3: generate pure data"
     thread_pure_data=$output_folder/$pure_data_file.$threadid
+    debug_print "phase 3: generate pure data($thread_pure_data)"
     ./filter.py -f $thread_raw_data > $thread_pure_data
     check_and_exit
 
     # 4. translate addrs to the function name and caller information
     size=`wc -l $thread_pure_data | awk '{print $1}'`
-    debug_print "phase 4: translate func and caller info, pure data size: $size"
+    debug_print "phase 4: translate func and caller info, pure data($thread_pure_data) size: $size"
     thread_trans_data=$output_folder/$translate_data_file.$threadid
     translate_process $thread_pure_data $thread_trans_data $size
     check_and_exit
 
     # 5. paste it with orignal trace data and generate the new data
-    debug_print "phase 5: merge translation data with pure data"
+    debug_print "phase 5: merge translation data($thread_trans_data) with pure data($thread_pure_data)"
     thread_stage_data=$output_folder/$stage_file.$threadid
-    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s\n", $1, $4, $5, $6}' > $thread_stage_data
+    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s|%s|%s\n", $1, $2, $3, $6, $7, $8}' > $thread_stage_data
     check_and_exit
 
     # 6. generate the final report for this thread (plain text)
-    debug_print "phase 6: generate report"
     thread_report_data=$output_folder/$report_file.$threadid
+    debug_print "phase 6: generate report($thread_report_data)"
     generate_report $thread_stage_data $thread_report_data
     check_and_exit
 
