@@ -8,7 +8,6 @@ Sometimes you may hard to understand a complex program, especially a very big ap
 Please note that, the tracer works for you in the following scenarios:
 * You can touch the source code, and can easy to re-compile it in your environment
 * You need a time-line based call graph
-* You are dealing with a single thread program
 
 **If NOT, please leave.**
 
