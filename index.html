@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Ftracer : A toolkit for tracing C/C++ program" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Ftracer</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/finaldie/ftracer">View on GitHub</a>
+
+          <h1 id="project_title">Ftracer</h1>
+          <h2 id="project_tagline">A toolkit for tracing C/C++ program</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/finaldie/ftracer/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/finaldie/ftracer/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="ftracer" class="anchor" href="#ftracer"><span class="octicon octicon-link"></span></a>ftracer</h1>
+
+<p>A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for you<br>
+Sometimes you may hard to understand a complex program, especially a very big application. So you need a powerful tool to help you to dump the call graph.</p>
+
+<h1>
+<a name="before-you-start" class="anchor" href="#before-you-start"><span class="octicon octicon-link"></span></a>Before you start</h1>
+
+<p>Please note that, the tracer works for you in the following scenarios:</p>
+
+<ul>
+<li>You can touch the source code, and can easy to re-compile it in your environment</li>
+<li>You need a time-line based call graph</li>
+</ul><p><strong>If NOT, please leave.</strong></p>
+
+<h1>
+<a name="how-to-use-it" class="anchor" href="#how-to-use-it"><span class="octicon octicon-link"></span></a>How to Use it</h1>
+
+<h2>
+<a name="check-out" class="anchor" href="#check-out"><span class="octicon octicon-link"></span></a>Check out</h2>
+
+<div class="highlight highlight-bash"><pre>git clone git@github.com:finaldie/ftracer.git
+</pre></div>
+
+<h2>
+<a name="compile-ftracer" class="anchor" href="#compile-ftracer"><span class="octicon octicon-link"></span></a>Compile ftracer</h2>
+
+<div class="highlight highlight-bash"><pre>make
+</pre></div>
+
+<h2>
+<a name="re-compile-your-program" class="anchor" href="#re-compile-your-program"><span class="octicon octicon-link"></span></a>Re-Compile your program</h2>
+
+<p>To make the tracer working, you should re-compile your application with <code>-g -finstrument-functions</code> flags</p>
+
+<div class="highlight highlight-bash"><pre>make <span class="nv">CFLAGS</span><span class="o">=</span><span class="s2">"-g -finstrument-functions"</span>
+</pre></div>
+
+<p><strong>NOTE:</strong> you can try the example in ftracer</p>
+
+<h2>
+<a name="generate-call-graph-report" class="anchor" href="#generate-call-graph-report"><span class="octicon octicon-link"></span></a>Generate Call Graph Report</h2>
+
+<ul>
+<li>
+<p>PRELOAD ftracer.so in the wrapper script</p>
+
+<div class="highlight highlight-bash"><pre>bash <span class="nv">$ </span>cat run.sh
+<span class="c">#!/bin/sh</span>
+<span class="nb">export </span><span class="nv">LD_PRELOAD</span><span class="o">=</span>/path/to/ftracer.so
+
+./yourapp
+</pre></div>
+</li>
+<li>
+<p>Run it</p>
+
+<div class="highlight highlight-bash"><pre>./run.sh
+</pre></div>
+</li>
+<li>
+<p>Generate the Report</p>
+
+<div class="highlight highlight-bash"><pre><span class="nb">cd </span>tools
+./gen_report.sh -e yourapp -f /tmp/trace.txt &gt; report.txt
+</pre></div>
+</li>
+</ul><h1>
+<a name="advanced" class="anchor" href="#advanced"><span class="octicon octicon-link"></span></a>Advanced</h1>
+
+<h2>
+<a name="env-variables" class="anchor" href="#env-variables"><span class="octicon octicon-link"></span></a>env variables</h2>
+
+<ul>
+<li>
+<p>Start tracer when enter in your specific function address</p>
+
+<pre><code>export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
+</code></pre>
+</li>
+<li>
+<p>Start tracer when receive your specific signal</p>
+
+<pre><code>export FTRACER_SIG_NUM=10 # 10 is SIGUSR1, kill -s SIGUSR1 PID to start tracer
+</code></pre>
+</li>
+<li>
+<p>Specific a output tracer file</p>
+
+<pre><code>export FTRACER_FILE=/tmp/your_tracer_file
+</code></pre>
+</li>
+</ul><p><strong>NOTE:</strong> About signal and function address entrance two features, they can not enable in the same time, if that, the signal feature will not be take effect.</p>
+
+<h2>
+<a name="gen_report-options" class="anchor" href="#gen_report-options"><span class="octicon octicon-link"></span></a>gen_report Options</h2>
+
+<p>Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
+boost... so we should filter them out</p>
+
+<ul>
+<li>
+<p><code>-s</code> Regex Symbol Filter</p>
+
+<p>For this, you should use <code>-s</code> arg, for example:</p>
+
+<pre><code>gen_report.sh -e app -f /tmp/trace.txt -s "^std::"
+</code></pre>
+</li>
+<li>
+<p><code>-S</code> Filter by file/path</p>
+
+<p>For this, the <code>-S</code> arg will help you, for example if you want to filter all the c++ related information out, you should:</p>
+
+<pre><code>gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
+</code></pre>
+</li>
+<li>
+<p><code>-p</code> Keep at most N level of path</p>
+
+<p>If a path is too long, it will be a noise for us, so the -p parameter will help to keep at most N level of path, for example, there is a path <code>/path/a/b/c/d.c</code>, use <code>-p 1</code> the path in the report will be <code>c/d.c</code>.<br>
+If no <code>-p</code> or <code>-p</code> value is a negative number, this feature will be ignore</p>
+</li>
+<li>
+<p><code>-o</code> Specific output folder</p>
+
+<p>The default output folder is <code>/tmp</code>, but if you want to specific another folder, 
+<code>-o output</code> will help you.</p>
+</li>
+<li>
+<p><code>-d</code> Don't cleanup the temporay data</p>
+
+<p>If you get wrong data when you run <code>gen_report.sh</code>, the temporay data will help you to debug what's happened, so if you want to debug it, pass the <code>-d</code> paramter.</p>
+</li>
+<li>
+<p><code>-v</code> Show debug info</p>
+
+<p>If you need more information during the report generating, you can pass <code>-v</code> in</p>
+</li>
+<li>
+<p><code>-t</code> Start N process to generate report</p>
+
+<p>The addr2line is slow, sometimes you need to start N process to generate the report in parallel, it will reduce the generating time. For example <code>-t 4</code></p>
+</li>
+<li>
+<p><code>-F</code> output format</p>
+
+<p>Default output format is <code>plain</code>, and you also can specific <code>html</code> format, for example <code>-F html</code>, this will be great help when you are dealing with a very big call graph.</p>
+</li>
+</ul><h1>
+<a name="enjoy-and-analysis-the-report" class="anchor" href="#enjoy-and-analysis-the-report"><span class="octicon octicon-link"></span></a>Enjoy and Analysis the Report</h1>
+
+<p>For now, open the <code>/tmp/trace_report.txt.threadid</code> and enjoy it. The example like:</p>
+
+<div class="highlight highlight-c"><pre> <span class="mi">1</span><span class="n">x</span> <span class="n">main</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">44</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="o">??:</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">..</span> <span class="mi">3</span><span class="n">x</span> <span class="n">a</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">36</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">45</span><span class="p">)</span>
+<span class="p">....</span> <span class="mi">1</span><span class="n">x</span> <span class="n">b</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">21</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">39</span><span class="p">)</span>
+<span class="p">......</span> <span class="mi">1</span><span class="n">x</span> <span class="n">c</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">16</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">25</span><span class="p">)</span>
+<span class="p">....</span> <span class="mi">1</span><span class="n">x</span> <span class="n">b</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">21</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">39</span><span class="p">)</span>
+<span class="p">......</span> <span class="mi">2</span><span class="n">x</span> <span class="n">d</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">11</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">27</span><span class="p">)</span>
+<span class="p">......</span> <span class="mi">1</span><span class="n">x</span> <span class="n">e</span><span class="p">(</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">github</span><span class="o">/</span><span class="n">ftracer</span><span class="o">/</span><span class="n">example</span><span class="o">/</span><span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">6</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">called</span> <span class="n">from</span> <span class="n">test</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">31</span><span class="p">)</span>
+</pre></div>
+
+<p>More detail see the <a href="https://github.com/finaldie/ftracer/tree/master/example">example</a></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Ftracer maintained by <a href="https://github.com/finaldie">finaldie</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
