@@ -25,10 +25,10 @@ make
 ## Re-Compile your program
 To make the tracer working, you should re-compile your application with `-g -finstrument-functions` flags
 ```bash
-make CFLAGS="-g -finstrument-functions"
+make CFLAGS="-g -finstrument-functions -O0"
 ```
 
-**NOTE:** you can try the example in ftracer
+**NOTE:** Make sure there is no optimization option like `-O2`, if exist, replace it with `-O0` or just drop it. Btw, you can try the example in ftracer
 
 ## Generate Call Graph Report
 * PRELOAD ftracer.so in the wrapper script
@@ -48,7 +48,7 @@ make CFLAGS="-g -finstrument-functions"
 * Generate the Report
     ```bash
     cd tools
-    ./gen_report.sh -e yourapp -f /tmp/trace.txt > report.txt
+    ./gen_report.sh -e yourapp -f /tmp/trace.txt
     ```
 
 # Advanced
