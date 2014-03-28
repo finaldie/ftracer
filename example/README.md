@@ -11,7 +11,7 @@ gcc -Wall -g -finstrument-functions -o test test.c
 bash $ ./run.sh
 i = 2
 bash $ cd ../tools/
-bash $ ./gen_report.sh ../example/test
+bash $ ./gen_report.sh -e ../example/test -f /tmp/trace.txt
 thread(139800167335680) report generate complete at /tmp/trace_report.txt.139800167335680
 thread(139800175728384) report generate complete at /tmp/trace_report.txt.139800175728384
 thread(139800186169088) report generate complete at /tmp/trace_report.txt.139800186169088
