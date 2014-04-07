@@ -11,6 +11,9 @@ Please note that, the tracer works for you in the following scenarios:
 
 **If NOT, please leave.**
 
+# Exceptions
+* Your program have core dump issue, it may not help you, currently you should use gdb to fix it first
+
 # How to Use it
 ## Check out
 ```bash
