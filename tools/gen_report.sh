@@ -22,6 +22,12 @@ html_report_folder=html
 index_file=trace_thread_index.txt
 template_folder=./template
 
+function signal_handler()
+{
+    jobs -l | xargs kill
+    exit $1
+}
+
 function debug_print()
 {
     if $debug; then
@@ -343,6 +349,8 @@ function translate_multi_process()
 }
 
 # __main__
+trap signal_handler SIGHUP SIGINT SIGTERM
+
 read_args $@
 check_args
 
