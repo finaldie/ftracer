@@ -1,0 +1,15 @@
+language: c
+
+compiler:
+    - clang
+    - gcc
+
+before_install:
+    - sudo apt-get install valgrind
+
+script:
+    - make
+
+notifications:
+    email:
+      - hyzwowtools@gmail.com
