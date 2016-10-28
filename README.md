@@ -117,7 +117,7 @@ boost... so we should filter them out
 
     Default output format is `plain`, and you also can specific `html` format, for example `-F html`, this will be great help when you are dealing with a very big call graph.
 
-# Enjoy and Analysis the Report
+# Enjoy and Analyze the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
 ```c
  1x main(/home/username/github/ftracer/example/test.c:44) - (called from ??:0)
