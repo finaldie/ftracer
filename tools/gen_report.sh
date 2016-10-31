@@ -222,7 +222,7 @@ function generate_report()
     if [ "$output_format" = "html" ]; then
         local html_folder=$output_folder/$html_report_folder
         local html_output=$html_folder/`basename $output`.html
-        cat $template_folder/html_header.html >> $html_output
+        cat $template_folder/html_header.html > $html_output
         cat $output >> $html_output
         cat $template_folder/html_tailer.html >> $html_output
 
