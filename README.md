@@ -79,6 +79,12 @@ make CFLAGS="-g -finstrument-functions -O0"
 Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
 boost... so we should filter them out
 
+* `-e` Program Location
+
+    The absolute program path, for example `/bin/ls`
+* `-f` Raw trace file dumped by the program
+
+    By default, the raw trace file is always in `/tmp/trace.txt`, use `-f /tmp/trace.txt` all the time should be OK
 * `-s` Regex Symbol Filter
 
     For this, you should use `-s` arg, for example:
