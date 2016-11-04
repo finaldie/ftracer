@@ -2,19 +2,20 @@
 
 ftracer
 ======
+A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for us<br>
+Sometimes we may hard to understand a complex program, especially a very big application. So we need a powerful tool to help us to dump the call graph, then we can follow the callgraph flow to see how it works as well as identify some problems. Here is an existing [Callgraph][2] of Lua5.3.3.
 
-A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for you<br>
-Sometimes you may hard to understand a complex program, especially a very big application. So you need a powerful tool to help you to dump the call graph.
+[![ftracer demo](http://g.recordit.co/icPgh2aNex.gif)]()
 
-# Before you start
-Please note that, the tracer works for you in the following scenarios:
-* You can touch the source code, and can easy to re-compile it in your environment
-* You need a time-line based call graph
+# Before Start
+Please note that, the tracer works for us in the following scenarios:
+* We can touch the source code, and easy to re-compile it in our dev environment
+* We need a time-line based call graph
 
-**If NOT, please leave.**
+**If NOT, we might need some other callgraph tools.**
 
 # Exceptions
-* Your program have core dump issue, it may not help you, currently you should use gdb to fix it first
+* The program has core dump issue, it may not help us, currently we should use gdb to fix it first
 
 # How to Use it
 ## Check out
@@ -27,13 +28,13 @@ git clone git@github.com:finaldie/ftracer.git
 make
 ```
 
-## Re-Compile your program
-To make the tracer working, you should re-compile your application with `-g -finstrument-functions` flags
+## Re-Compile Target Program
+To make the tracer working, we should re-compile the application with `-g -finstrument-functions` flags
 ```bash
-make CFLAGS="-g -finstrument-functions -O0"
+make CFLAGS+="-g -finstrument-functions -O0"
 ```
 
-**NOTE:** Make sure there is no optimization option like `-O2`, if exist, replace it with `-O0` or just drop it. Btw, you can try the example in ftracer
+**NOTE:** Make sure there is no optimization option like `-O2`, if exist, replace it with `-O0` or just drop it. Btw, we can try the [examples][1] in ftracer
 
 ## Generate Call Graph Report
 * PRELOAD ftracer.so in the wrapper script
@@ -58,12 +59,12 @@ make CFLAGS="-g -finstrument-functions -O0"
 
 # Advanced
 ## env variables
-* Start tracer when enter in your specific function address
+* Start tracer when entering into a specific function address
     ```
     export FTRACER_FUNC_ENTRY=xxx  # xxx is the function address, like 0000123
     ```
 
-* Start tracer when receive your specific signal
+* Start tracer when receiving a specific signal
     ```
     export FTRACER_SIG_NUM=10 # 10 is SIGUSR1, kill -s SIGUSR1 PID to start tracer
     ```
@@ -73,12 +74,9 @@ make CFLAGS="-g -finstrument-functions -O0"
     export FTRACER_FILE=/tmp/your_tracer_file
     ```
 
-**NOTE:** About signal and function address entrance two features, they can not enable in the same time, if that, the signal feature will not be take effect.
+**NOTE:** About the two features `signal` and `function address entrance`, they can not enable in the same time, if that, the signal feature will not be take effect.
 
 ## gen_report Options
-Sometimes, we deal with C++ program, there are a lot of noise in there, like std,
-boost... so we should filter them out
-
 * `-e` Program Location
 
     The absolute program path, for example `/bin/ls`
@@ -87,14 +85,15 @@ boost... so we should filter them out
     By default, the raw trace file is always in `/tmp/trace.txt`, use `-f /tmp/trace.txt` all the time should be OK
 * `-s` Regex Symbol Filter
 
-    For this, you should use `-s` arg, for example:
-    ```
+    Sometimes, we deal with C++ programs, there are a lot of noises in there, like `std`, `boost`... so we should filter them out.<br>
+    For this, we should use `-s` arg, for example:
+    ```console
     gen_report.sh -e app -f /tmp/trace.txt -s "^std::"
     ```
 * `-S` Filter by file/path
 
-    For this, the `-S` arg will help you, for example if you want to filter all the c++ related information out, you should:
-    ```
+    For this, the `-S` arg will help us, for example, if we want to filter all the c++ related information out:
+    ```console
     gen_report.sh -e app -f /tmp/trace.txt -S /include/c++
     ```
 * `-p` Keep at most N level of path
@@ -104,24 +103,24 @@ boost... so we should filter them out
 
 * `-o` Specific output folder
 
-    The default output folder is `/tmp`, but if you want to specific another folder, 
-    `-o output` will help you.
+    The default output folder is `/tmp`, but if we want to specific another folder, 
+    `-o output` will help us.
 
 * `-d` Don't cleanup the temporay data
 
-    If you get wrong data when you run `gen_report.sh`, the temporay data will help you to debug what's happened, so if you want to debug it, pass the `-d` paramter.
+    If we get some wrong data when running `gen_report.sh`, the temporay data will help us to debug what's happened, so if we want to debug it, pass the `-d` paramter.
 
 * `-v` Show debug info
 
-    If you need more information during the report generating, you can pass `-v` in
+    If we need more information during the report generating, pass `-v` in
 
 * `-t` Start N process to generate report
 
-    The addr2line is slow, sometimes you need to start N process to generate the report in parallel, it will reduce the generating time. For example `-t 4`
+    The addr2line is slow, sometimes we need to start N processes to generate the report in parallel, it will reduce the generating time. For example `-t 4`
 
 * `-F` output format
 
-    Default output format is `plain`, and you also can specific `html` format, for example `-F html`, this will be great help when you are dealing with a very big call graph.
+    Default output format is `plain`, and we also can specific `html` format, for example `-F html`, this will be greatly helpful when we are dealing with a very big call graph. [Lua5.3.3 Callgraph][2]
 
 # Enjoy and Analyze the Report
 For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example like:
@@ -135,6 +134,8 @@ For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example lik
 ...... 1x e(/home/username/github/ftracer/example/test.c:6) - (called from test.c:31)
 ```
 
-More detail see the [example][1]
+More detail see the [example][1], and [Contact Me][3], let's do it better :D
 
 [1]: https://github.com/finaldie/ftracer/tree/master/example
+[2]: http://finaldie.com/learning/lua533_callgraph
+[3]: http://finaldie.com/blog
