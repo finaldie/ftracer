@@ -165,7 +165,7 @@ def gen_report(file, prefix, call_list, skip):
             if skip:
                 exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
                 if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                    print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                    print >> sys.stderr, "Formatter - Entry phase, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
 
                 continue
 
@@ -180,7 +180,7 @@ def gen_report(file, prefix, call_list, skip):
             if should_skip:
                 exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
                 if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                    print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                    print >> sys.stderr, "Formatter - Skip checking, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
 
                 continue
 
@@ -190,7 +190,7 @@ def gen_report(file, prefix, call_list, skip):
 
             exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, frame['prefix'] + 1, frame['next'], False)
             if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                print >> sys.stderr, "Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                print >> sys.stderr, "Formatter - prefix Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
 
             # if the last frame is equal to the next_call_list, we only need to
             # increase the times counter in the frame

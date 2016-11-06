@@ -69,7 +69,7 @@ def filter_graph(file):
                 print "X|%s|%s|0x0|0x0" % (exit_func, exit_caller)
 
             else:
-                print >> sys.stderr, "Warning: Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func, exit_lineno, func, curr_lineno)
+                print >> sys.stderr, "Filter - Warning: Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func, exit_lineno, func, curr_lineno)
 
                 print "X|%s|%s|0x0|0x0" % (func, caller)
 
@@ -79,7 +79,7 @@ def filter_graph(file):
         elif type == "X":
             return func, caller, curr_lineno
         else:
-            print >> sys.stderr, "Warning: Incorrect type: %s at line %d, the type must be E or X" % (type, curr_lineno)
+            print >> sys.stderr, "Filter - Warning: Incorrect type: %s at line %d, the type must be E or X" % (type, curr_lineno)
             sys.exit(1)
 
 def usage():
