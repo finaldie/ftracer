@@ -7,6 +7,7 @@ import string
 import pprint
 import re
 import cgi
+import time
 
 # static variables
 PLAIN_OUTPUT = "plain"
@@ -107,18 +108,19 @@ def load_trace_file():
 
         call_graph = []
         gen_report(file, 1, call_graph, False)
-        dump_graph(call_graph)
+        opt_callgraph = optimize_callgraph(call_graph, None)
+        dump_graph(opt_callgraph)
     finally:
         file.close()
 
 def create_frame(prefix, func_name, func_location, caller_location):
     return {
-        'prefix' : prefix,
-        'func_name' : func_name,
-        'func_location' : func_location,
+        'prefix'          : prefix,
+        'func_name'       : func_name,
+        'func_location'   : func_location,
         'caller_location' : caller_location,
-        'times' : 1,
-        'next' : []
+        'times'           : 1,
+        'next'            : []
     }
 
 def should_skip_line(type):
@@ -235,6 +237,102 @@ def file_should_skip(raw_func_location):
 
     return False
 
+def create_loopframe(func_name, caller_location):
+    return create_frame(0, "loop: " + func_name, "", caller_location)
+
+def _combine_tuples(callgraph, idx, tuple_sz, loopframe, decision_list):
+    length = len(callgraph)
+    loopframe_needed = False
+    end_idx = idx + 1
+    offset  = idx + tuple_sz
+    opt_times = 0
+
+    while True:
+        if callgraph[idx: idx + tuple_sz] == callgraph[offset: offset + tuple_sz]:
+            if loopframe_needed == False:
+                loopframe_needed = True
+                decision_list.append(loopframe)
+
+                name_list = []
+                for frame in callgraph[idx: idx + tuple_sz]:
+                    name_list.append(frame['func_name'])
+                    loopframe['next'].append(frame)
+
+                max_names = 4
+                loopframe['func_name'] += ','.join(name_list[:max_names])
+                if len(name_list) > max_names:
+                    loopframe['func_name'] += '...'
+
+                #if len(name_list) > 2 and name_list[0] == 'beforeSleep':
+                #    print "name_list: {}".format(name_list)
+
+                #    for frame in callgraph[idx:idx+tuple_sz]:
+                #        pprint.pprint(frame)
+
+                #    #time.sleep(10)
+
+            loopframe['times'] += 1
+            end_idx = offset + tuple_sz
+            offset = end_idx
+            opt_times += 1
+        else:
+            break
+
+    return loopframe_needed, end_idx, opt_times
+
+def optimize_one_level(callgraph, decision_list):
+    if callgraph is None:
+        return
+
+    if not callgraph:
+        return
+
+    length = len(callgraph)
+    if length < 4:
+        for frame in callgraph:
+            decision_list.append(frame)
+        return
+
+    caller_location = callgraph[0]['caller_location']
+    idx = 0
+    end_idx = 0
+    opt_times = 0
+
+    while idx < length:
+        loopframe_needed = False
+
+        for i in range(2, length / 2 + 1):
+            offset = idx + i
+            loopframe = create_loopframe("", caller_location)
+
+            loopframe_needed, end_idx, combined_times = _combine_tuples(callgraph, idx, i, loopframe, decision_list)
+            opt_times += combined_times
+
+            if loopframe_needed:
+                break
+
+        # Just append the raw value here
+        if loopframe_needed == False:
+            decision_list.append(callgraph[idx])
+
+        idx = end_idx
+
+# Optimize the callgraph, try to combine the repeated frames
+def optimize_callgraph(curr_callgraph, parent_frame):
+    # Optimize current level callgraph
+    decision_list = []
+    optimize_one_level(curr_callgraph, decision_list)
+
+    if parent_frame:
+        parent_frame['next'] = decision_list
+
+    # Iterate the children' callgraph
+    for frame in decision_list:
+        if frame['next']:
+            optimize_callgraph(frame['next'], frame)
+
+    return decision_list
+
 def getFuncLocation(func_loc):
     display_func_loc = ""
 
@@ -267,11 +365,11 @@ def getPrefix(level):
 
     return prefix
 
-def dump_graph_to_plain(call_graph):
+def dump_graph_to_plain(call_graph, level):
     for frame in call_graph:
         # filter path by path_level
         display_func_loc = getFuncLocation(frame['func_location'])
-        display_prefix = getPrefix(frame['prefix'])
+        display_prefix = getPrefix(level)
 
         print "%s %dx %s(%s) - (called from %s)" % (display_prefix,
                                                     frame['times'],
@@ -279,7 +377,7 @@ def dump_graph_to_plain(call_graph):
                                                     display_func_loc,
                                                     frame['caller_location'])
 
-        dump_graph_to_plain(frame['next'])
+        dump_graph_to_plain(frame['next'], level + 1)
 
 def dump_graph_to_html(call_graph):
     global html_attr_id
@@ -311,7 +409,7 @@ def dump_graph_to_html(call_graph):
 
 def dump_graph(call_graph):
     if output_format == PLAIN_OUTPUT:
-        dump_graph_to_plain(call_graph)
+        dump_graph_to_plain(call_graph, 0)
     elif output_format == HTML_OUTPUT:
         global html_attr_id
         html_attr_id = 0
