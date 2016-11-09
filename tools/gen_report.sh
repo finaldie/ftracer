@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#set -x
+
 # user input args
 exe=
 trace_file=
@@ -218,6 +220,11 @@ function generate_report()
     fi
 
     ./formatter.py -f $input $args > $output
+    if [ $? != 0 ]; then
+        echo "Error occurred during formatter.py"
+        cat $output
+        return 1
+    fi
 
     if [ "$output_format" = "html" ]; then
         local html_folder=$output_folder/$html_report_folder
