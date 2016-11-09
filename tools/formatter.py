@@ -302,7 +302,6 @@ def optimize_one_level(callgraph, decision_list):
         loopframe_needed = False
 
         for i in range(2, length / 2 + 1):
-            offset = idx + i
             loopframe = create_loopframe("", caller_location)
 
             loopframe_needed, end_idx, combined_times = _combine_tuples(callgraph, idx, i, loopframe, decision_list)
