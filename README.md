@@ -4,7 +4,7 @@ ftracer
 ======
 A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for us.
 
-Sometimes we may hard to understand a complex program, especially a very big application, so we need a powerful tool to help us to dump the call graph, then we can follow the callgraph flow to see how it works as well as identify some problems. Here is an existing [Callgraph][2] of Lua5.3.3.
+Sometimes we may hard to understand a complex program, especially a very big application, so we need a powerful tool to help us to dump the call graph, then we can follow the callgraph flow to see how it works as well as identify some problems. Tere are some existing [Callgraphs][2] of Lua5.3.3 and Redis 3.2.5.
 
 [![ftracer demo](http://g.recordit.co/icPgh2aNex.gif)]()
 
@@ -138,5 +138,5 @@ For now, open the `/tmp/trace_report.txt.threadid` and enjoy it. The example lik
 More detail see the [example][1], and [Contact Me][3], let's do it better :D
 
 [1]: https://github.com/finaldie/ftracer/tree/master/example
-[2]: http://finaldie.com/learning/lua533_callgraph
+[2]: http://finaldie.com/blog/callgraphs/
 [3]: http://finaldie.com/blog
