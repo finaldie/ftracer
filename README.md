@@ -6,7 +6,7 @@ A toolkit for tracing C/C++ program(including multi-thread program), it's used t
 
 **_The devil is in the details..._**
 
-Imagine that, if there is a 10 years old huge project will be migrated to us, and the corresponding requirements will come soon as well(like new features, bug fix..), how can we locate to the core path in a very limited time? So we need a powerful too to help us. This time-line based callgraph will save us a lot of time to deal with the complex details.
+Imagine that, if there is a 10 years old huge project will be migrated to us, and the corresponding requirements will come soon as well(like new features, bug fix..), how can we locate to the core path in a very limited time? So we need a powerful tool to help us. This time-line based callgraph will save us a lot of time to deal with the complex details, we can focus on the more important things, and make the life easier.
 
 And also we can use it as a source code index in the entire working cycles, especially for a very complex program. Everytime we want to remember something from high level, we can use it, just follow the callgraph flow, to see how it works, as well as we might identify some problems from it :) 
 
