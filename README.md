@@ -2,9 +2,15 @@
 
 ftracer
 ======
-A toolkit for tracing C/C++ program(including multi-thread program), it can generate a call graph for us.
+A toolkit for tracing C/C++ program(including multi-thread program), it's used to generate a time-line based callgraph, which will guide us to understand the core of the program extremely fast at the beginning.
 
-Sometimes we may hard to understand a complex program, especially a very big application, so we need a powerful tool to help us to dump the call graph, then we can follow the callgraph flow to see how it works as well as identify some problems. There are some existing [Callgraphs][2] of Lua5.3.3 and Redis 3.2.5.
+**_The devil is in the details..._**
+
+Imagine that, if there is a 10 years old huge project will be migrated to us, and the corresponding requirements will come soon as well(like new features, bug fix..), how can we locate to the core path in a very limited time? So we need a powerful too to help us. This time-line based callgraph will save us a lot of time to deal with the complex details.
+
+And also we can use it as a source code index in the entire working cycles, especially for a very complex program. Everytime we want to remember something from high level, we can use it, just follow the callgraph flow, to see how it works, as well as we might identify some problems from it :) 
+
+Also, there are some existing [Callgraphs][2] of Lua5.3.3 and Redis3.2.5, we can use them directly without any addtional efforts.
 
 [![ftracer demo](http://g.recordit.co/icPgh2aNex.gif)]()
 
