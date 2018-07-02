@@ -12,7 +12,7 @@ And also we can use it as a source code index in the entire working cycles, espe
 
 Also, there are some existing [Callgraphs][2] of Lua5.3.3 and Redis3.2.5, we can use them directly without any addtional efforts.
 
-[![ftracer demo](http://g.recordit.co/icPgh2aNex.gif)]()
+[![ftracer demo](https://github.com/finaldie/misc/blob/master/articals/ftracer/images/ftracer.gif)]()
 
 # Before Start
 Please note that, the tracer works for us in the following scenarios:
