@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -g -fPIC -shared -o ftracer.so ftracer.c
+	gcc -Wall -g -fPIC -ldl -shared -o ftracer.so ftracer.c
 
 clean:
 	rm -f ftracer.so

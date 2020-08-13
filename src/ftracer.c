@@ -1,3 +1,6 @@
+#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <link.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,10 +37,16 @@ void _dump_profile_enter_info(void* function, void* caller)
     }
 
     pthread_t current = pthread_self();
+    Dl_info infoFunction = {0}, infoCaller = {0};
+    struct link_map* pLinkMapFunction = NULL, *pLinkMapCaller = NULL;
+    dladdr1(function, &infoFunction, (void**)&pLinkMapFunction, RTLD_DL_LINKMAP);
+    dladdr1(caller, &infoCaller, (void**)&pLinkMapCaller, RTLD_DL_LINKMAP);
 
     pthread_mutex_lock(&_fmutex);
 
-    int n = fprintf(__fp, "%lu|E|%p|%p\n", current, function, caller);
+    int n = fprintf(__fp, "%lu|E|%p|%p\n", current, 
+        pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function, 
+        pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller);
     if (n < 0) {
         printf("dump entrance trace info failed: %s\n", strerror(errno));
     }
@@ -52,10 +61,16 @@ void _dump_profile_exit_info(void* function, void* caller)
     }
 
     pthread_t current = pthread_self();
+    Dl_info infoFunction = {0}, infoCaller = {0};
+    struct link_map* pLinkMapFunction = NULL, *pLinkMapCaller = NULL;
+    dladdr1(function, &infoFunction, (void**)&pLinkMapFunction, RTLD_DL_LINKMAP);
+    dladdr1(caller, &infoCaller, (void**)&pLinkMapCaller, RTLD_DL_LINKMAP);
 
     pthread_mutex_lock(&_fmutex);
 
-    int n = fprintf(__fp, "%lu|X|%p|%p\n", current, function, caller);
+    int n = fprintf(__fp, "%lu|X|%p|%p\n", current, 
+        pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function, 
+        pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller);
     if (n < 0) {
         printf("dump exit trace info failed: %s\n", strerror(errno));
     }

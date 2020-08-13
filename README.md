@@ -48,7 +48,7 @@ make CFLAGS+="-g -finstrument-functions -O0"
     ```bash
     bash $ cat run.sh
     #!/bin/sh
-    export LD_PRELOAD=/path/to/ftracer.so
+    export LD_PRELOAD=/path/to/ftracer.so:libdl.so
 
     ./yourapp
     ```

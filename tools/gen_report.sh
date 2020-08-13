@@ -2,6 +2,8 @@
 
 #set -x
 
+curdir="$(cd "$(dirname "$0")"; pwd)"
+
 # user input args
 exe=
 trace_file=
@@ -22,7 +24,7 @@ stage_file=trace_stage_data
 report_file=trace_report
 html_report_folder=html
 index_file=trace_thread_index.txt
-template_folder=./template
+template_folder="${curdir}/template"
 
 function signal_handler()
 {
@@ -219,7 +221,7 @@ function generate_report()
         args=$args" -F $output_format"
     fi
 
-    ./formatter.py -f $input $args > $output
+    "${curdir}/formatter.py" -f $input $args > $output
     if [ $? != 0 ]; then
         echo "Error occurred during formatter.py"
         cat $output
@@ -304,7 +306,7 @@ function translate_multi_process()
 
         debug_print "partition$i: start=$start lines=$partition_size total_size=$size"
         # for every thread, it will read its partition lines
-        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | ./trans_status.awk -vstatus_file=$status_file -vsize=$partition_size > $partition &
+        tail -n +$start $input | head -$partition_size | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' | "${curdir}/trans_status.awk" -vstatus_file=$status_file -vsize=$partition_size > $partition &
     done
 
     # wait until all the sub jobs finish
@@ -385,7 +387,7 @@ do
     # 3. filter the raw data, get the pure data for next step
     thread_pure_data=$output_folder/$pure_data_file.$threadid
     debug_print "phase 3: generate pure data($thread_pure_data)"
-    ./filter.py -f $thread_raw_data > $thread_pure_data
+    "${curdir}/filter.py" -f $thread_raw_data > $thread_pure_data
     check_and_exit
 
     # 4. translate addrs to the function name and caller information
