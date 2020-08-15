@@ -6,7 +6,8 @@ import getopt
 import string
 import pprint
 import re
-import cgi
+#import cgi
+import html
 import time
 
 # static variables
@@ -167,7 +168,7 @@ def gen_report(file, prefix, call_list, skip):
             if skip:
                 exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
                 if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                    print >> sys.stderr, "Formatter - Entry phase, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                    print("Formatter - Entry phase, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno), file=sys.stderr)
 
                 continue
 
@@ -182,7 +183,7 @@ def gen_report(file, prefix, call_list, skip):
             if should_skip:
                 exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, 0, [], True)
                 if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                    print >> sys.stderr, "Formatter - Skip checking, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                    print("Formatter - Skip checking, Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno), file=sys.stderr)
 
                 continue
 
@@ -192,7 +193,7 @@ def gen_report(file, prefix, call_list, skip):
 
             exit_func_addr, exit_caller_addr, exit_lineno = gen_report(file, frame['prefix'] + 1, frame['next'], False)
             if exit_func_addr != func_addr or exit_caller_addr != caller_addr:
-                print >> sys.stderr, "Formatter - prefix Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno)
+                print("Formatter - prefix Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func_addr, exit_lineno, func_addr, curr_lineno), file=sys.stderr)
 
             # if the last frame is equal to the next_call_list, we only need to
             # increase the times counter in the frame
@@ -301,7 +302,7 @@ def optimize_one_level(callgraph, decision_list):
     while idx < length:
         loopframe_needed = False
 
-        for i in range(2, length / 2 + 1):
+        for i in range(2, length // 2 + 1):
             loopframe = create_loopframe("", caller_location)
 
             loopframe_needed, end_idx, combined_times = _combine_tuples(callgraph, idx, i, loopframe, decision_list)
@@ -370,11 +371,11 @@ def dump_graph_to_plain(call_graph, level):
         display_func_loc = getFuncLocation(frame['func_location'])
         display_prefix = getPrefix(level)
 
-        print "%s %dx %s(%s) - (called from %s)" % (display_prefix,
+        print("%s %dx %s(%s) - (called from %s)" % (display_prefix,
                                                     frame['times'],
                                                     frame['func_name'],
                                                     display_func_loc,
-                                                    frame['caller_location'])
+                                                    frame['caller_location']))
 
         dump_graph_to_plain(frame['next'], level + 1)
 
@@ -387,24 +388,24 @@ def dump_graph_to_html(call_graph):
         display_func_loc = getFuncLocation(frame['func_location'])
 
         if frame['next']:
-            print "<li><div id=Folder%d class=\"ExpandCollapse\">+</div><div id=\"Content%d\" class=\"FolderContent\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
+            print("<li><div id=Folder%d class=\"ExpandCollapse\">+</div><div id=\"Content%d\" class=\"FolderContent\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
                     html_attr_id,
                     frame['times'],
-                    cgi.escape(frame['func_name']),
+                    html.escape(frame['func_name']),
                     html_attr_id,
                     display_func_loc,
-                    frame['caller_location'])
-            print "<ul id=\"ExpandCollapseFolder%d\">" % html_attr_id
+                    frame['caller_location']))
+            print("<ul id=\"ExpandCollapseFolder%d\">" % html_attr_id)
 
             dump_graph_to_html(frame['next'])
-            print "</ul>"
+            print("</ul>")
         else:
-            print "<li><div class=\"Normal\">*</div><div id=\"Content%d\" class=\"Content\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
+            print("<li><div class=\"Normal\">*</div><div id=\"Content%d\" class=\"Content\">%dx %s</div><div id=\"ExtendContent%d\" class=\"ExtendContent\">%s - called from %s</div></li>" % (html_attr_id,
                     frame['times'],
-                    cgi.escape(frame['func_name']),
+                    html.escape(frame['func_name']),
                     html_attr_id,
                     display_func_loc,
-                    frame['caller_location'])
+                    frame['caller_location']))
 
 def dump_graph(call_graph):
     if output_format == PLAIN_OUTPUT:
@@ -415,7 +416,7 @@ def dump_graph(call_graph):
         dump_graph_to_html(call_graph)
 
 def usage():
-    print "usage: formatter.py -f trace.txt [-s sym_filter] [-S file_filter[, file_filters...]] [-p level] [-v] [-F format]"
+    print("usage: formatter.py -f trace.txt [-s sym_filter] [-S file_filter[, file_filters...]] [-p level] [-v] [-F format]")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -441,8 +442,8 @@ if __name__ == "__main__":
             elif op == "-F":
                 output_format = value
 
-    except Exception, e:
-        print "Fatal: " + str(e)
+    except Exception as e:
+        print("Fatal: " + str(e))
         usage()
         sys.exit(1)
 

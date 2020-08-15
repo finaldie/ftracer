@@ -6,11 +6,11 @@ A toolkit for tracing C/C++ program(including multi-thread program), it's used t
 
 **_The devil is in the details..._**
 
-Imagine that, if there is a 10 years old huge project will be migrated to us, and the corresponding requirements will come soon as well(like new features, bug fix..), how can we locate to the core path in a very limited time? So we need a powerful tool to help us. This time-line based callgraph will save us a lot of time to deal with the complex details, we can focus on the more important things, and make the life easier.
+Imagine that, if there is a 10 years old and huge project will be transferred to us, and the corresponding requirements will come soon as well (like the new features, bug fix..), how can we locate to the core path in a very limited time? So we need a powerful tool to help us. This time-line based callgraph will save us a lot of time to deal with the complex details, we can focus on the more important things, and make the life easier.
 
-And also we can use it as a source code index in the entire working cycles, especially for a very complex program. Everytime we want to remember something from high level, we can use it, just follow the callgraph flow, to see how it works, as well as we might identify some problems from it :) 
+And also we can use it as a source code index in the entire working cycles, especially for a very complex program. Everytime we want to remember something from the high level, we can use it, just follow the callgraph flow, to see how it works, as well as we might identify some problems from it :) 
 
-Also, there are some existing [Callgraphs][2] of Lua5.3.3 and Redis3.2.5, we can use them directly without any addtional efforts.
+There are some existing [Callgraphs][2] for the **RocksDB**, **Lua** and **Redis**, we can use them directly without any addtional efforts.
 
 [![ftracer demo](https://github.com/finaldie/misc/blob/master/articals/ftracer/images/ftracer.gif)]()
 
@@ -89,7 +89,7 @@ make CFLAGS+="-g -finstrument-functions -O0"
     The absolute program path, for example `/bin/ls`
 * `-f` Raw trace file dumped by the program
 
-    By default, the raw trace file is always in `/tmp/trace.txt`, use `-f /tmp/trace.txt` all the time should be OK
+    By default, the raw trace file is at `/tmp/trace.txt`, use `-f /tmp/trace.txt` all the time should be OK
 * `-s` Regex Symbol Filter
 
     Sometimes, we deal with C++ programs, there are a lot of noises in there, like `std`, `boost`... so we should filter them out.<br>
@@ -106,7 +106,7 @@ make CFLAGS+="-g -finstrument-functions -O0"
 * `-p` Keep at most N level of path
 
     If a path is too long, it will be a noise for us, so the -p parameter will help to keep at most N level of path, for example, there is a path `/path/a/b/c/d.c`, use `-p 1` the path in the report will be `c/d.c`.<br>
-    If no `-p` or `-p` value is a negative number, this feature will be ignore
+    If no `-p` or `-p` value is a negative number, this feature will be ignored
 
 * `-o` Specific output folder
 
@@ -116,6 +116,10 @@ make CFLAGS+="-g -finstrument-functions -O0"
 * `-d` Don't cleanup the temporay data
 
     If we get some wrong data when running `gen_report.sh`, the temporay data will help us to debug what's happened, so if we want to debug it, pass the `-d` paramter.
+
+* `-r` Read symbols from the dynamic libraries
+
+    Most of the time, we only care about the symbols from the program itself, but in case we want to read the symbols from the dynamic libraries, enable this flag then. Please **note**, enable this flag will slow down the report generation.
 
 * `-v` Show debug info
 

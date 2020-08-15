@@ -15,6 +15,7 @@ cleanup=true
 threads=1
 debug=false
 output_format=
+dyn_sym=false
 
 # static variables
 raw_data_file=trace_raw_data
@@ -43,17 +44,18 @@ function usage()
 {
     echo "usage gen_report.sh -e exe -f trace_data [-s sym_filter] [-S file_filter[, filters...]] [-p path_level] [-o output_folder] [-d] [-h] [-t threads] [-v] [-F format]"
     echo " Parameters:"
-    echo " \_ -e: the application"
-    echo " \_ -f: the trace file"
-    echo " \_ -s: the regex symbol filter, for example: -s \"^std::\""
-    echo " \_ -S: the file/path filters, for example: /include/c++,/include/boost"
-    echo " \_ -p: the keep at most N level of path, it must be a number"
-    echo " \_ -o: output folder, default is /tmp"
-    echo " \_ -F: output format, plain(default) or html"
-    echo " \_ -d: ignore cleanup the tempoary data, this will help you to debug the tool"
-    echo " \_ -v: show debug info"
-    echo " \_ -t: specific how many threads you want to use, it will speed up when the data is too big"
-    echo " \_ -h: show the usage"
+    echo " \_ -e: The application"
+    echo " \_ -f: The trace file"
+    echo " \_ -s: The regex symbol filter, for example: -s \"^std::\""
+    echo " \_ -S: The file/path filters, for example: /include/c++,/include/boost"
+    echo " \_ -p: The keep at most N level of path, it must be a number"
+    echo " \_ -o: Output folder, default is /tmp"
+    echo " \_ -F: Output format, plain(default) or html"
+    echo " \_ -r: Read symbols from dynamic libraries as well (very slow)"
+    echo " \_ -d: Ignore cleanup the tempoary data, this will help you to debug the tool"
+    echo " \_ -v: Enable the debug info"
+    echo " \_ -t: Specific how many threads you want to use, it will speed up when the data is too big"
+    echo " \_ -h: Display the usage"
 }
 
 function check_and_exit()
@@ -150,7 +152,7 @@ function check_args()
 
 function read_args()
 {
-    while getopts "e:f:S:s:p:o:dht:vF:" ARGS
+    while getopts "e:f:S:s:p:o:rdht:vF:" ARGS
     do
         case $ARGS in
             e)
@@ -186,6 +188,9 @@ function read_args()
                 ;;
             F)
                 output_format=$OPTARG
+                ;;
+            r)
+                dyn_sym=true
                 ;;
             *)
                 exit
@@ -278,7 +283,32 @@ function translate_single_process()
     local output=$2
     local size=$3
 
-    cat $input | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $output
+    if ! $dyn_sym; then
+      cat $input | awk -F '|' '{print $4, $5}' | xargs addr2line -e $exe -f -C | awk '{if (NR%4==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|%s\n", $1, $2, $4}' > $output
+    else
+      while read line; do
+        local type="`echo $line | awk -F '|' '{print $1}'`"
+        if [ "$type" = "X" ]; then
+          echo "??|??:0|??:0" >> $output
+          continue
+        fi
+
+        local cur_sym_path="`echo "$line" | awk -F '|' '{print $6}'`"
+        local caller_sym_path="`echo "$line" | awk -F '|' '{print $7}'`"
+
+        if [ -z "$cur_sym_path" ]; then
+          cur_sym_path=$exe
+        fi
+
+        if [ -z "$caller_sym_path" ]; then
+          caller_sym_path=$exe
+        fi
+
+        echo "$line" | awk -F '|' '{print $4}' | xargs addr2line -e $cur_sym_path -f -C | awk '{if (NR%2==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s|%s|", $1, $2}' >> $output
+
+        echo "$line" | awk -F '|' '{print $5}' | xargs addr2line -e $caller_sym_path -f -C | awk '{if (NR%2==0) {print $0} else {printf "%s|", $0}}' | awk -F '|' '{printf "%s\n", $2}' >> $output
+      done < $input
+    fi
 }
 
 function translate_multi_process()
@@ -381,7 +411,7 @@ do
     # 2. split data into per-thread file
     thread_raw_data=$output_folder/$raw_data_file.$threadid
     debug_print "phase 2: generate raw data($thread_raw_data)"
-    cat $trace_file | grep "^$threadid" | awk -F '|' '{printf "%s|%s|%s\n", $2, $3, $4}' > $thread_raw_data
+    cat $trace_file | grep "^$threadid" | awk -F '|' '{printf "%s|%s|%s|%s|%s\n", $2, $3, $4, $5, $6}' > $thread_raw_data
     check_and_exit
 
     # 3. filter the raw data, get the pure data for next step
@@ -400,7 +430,7 @@ do
     # 5. paste it with orignal trace data and generate the new data
     debug_print "phase 5: merge translation data($thread_trans_data) with pure data($thread_pure_data)"
     thread_stage_data=$output_folder/$stage_file.$threadid
-    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s|%s|%s\n", $1, $2, $3, $6, $7, $8}' > $thread_stage_data
+    paste -d "|" $thread_pure_data $thread_trans_data | awk -F '|' '{printf "%s|%s|%s|%s|%s|%s\n", $1, $2, $3, $8, $9, $10}' > $thread_stage_data
     check_and_exit
 
     # 6. generate the final report for this thread (plain text)
