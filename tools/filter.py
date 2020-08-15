@@ -55,10 +55,13 @@ def filter_graph(file):
 
         func = value_list[1]
         caller = value_list[2]
+        curr_sym_path = value_list[3]
+        caller_sym_path = value_list[4]
 
         # we entry into next call
         if type == "E":
-            print "E|%s|%s|%s|%s" % (func, caller, func, caller)
+            print("E|%s|%s|%s|%s|%s|%s" % (func, caller, func, caller, curr_sym_path, caller_sym_path))
+
             exit_func, exit_caller, exit_lineno = filter_graph(file)
 
             # if this happened, that means the call hierarchy is incorrect, it
@@ -66,12 +69,12 @@ def filter_graph(file):
             if exit_func == func and exit_caller == caller:
                 # to optimize the performance(addr2line is slow), append 0x0
                 # address instead of a real one
-                print "X|%s|%s|0x0|0x0" % (exit_func, exit_caller)
+                print("X|%s|%s|0x0|0x0||" % (exit_func, exit_caller))
 
             else:
-                print >> sys.stderr, "Filter - Warning: Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func, exit_lineno, func, curr_lineno)
+                print("Filter - Warning: Incorrect exit func: %s(%d), expect: %s(%d)" % (exit_func, exit_lineno, func, curr_lineno), file=sys.stderr)
 
-                print "X|%s|%s|0x0|0x0" % (func, caller)
+                print("X|%s|%s|0x0|0x0||" % (func, caller))
 
                 return exit_func, exit_caller, exit_lineno
 
@@ -79,11 +82,11 @@ def filter_graph(file):
         elif type == "X":
             return func, caller, curr_lineno
         else:
-            print >> sys.stderr, "Filter - Warning: Incorrect type: %s at line %d, the type must be E or X" % (type, curr_lineno)
+            print("Filter - Warning: Incorrect type: %s at line %d, the type must be E or X" % (type, curr_lineno), file=sys.stderr)
             sys.exit(1)
 
 def usage():
-    print "usage: filter.py -f trace.txt"
+    print("usage: filter.py -f trace.txt")
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
@@ -100,8 +103,8 @@ if __name__ == "__main__":
             elif op == "-f":
                 trace_file = value
 
-    except Exception, e:
-        print "Fatal: " + str(e)
+    except Exception as e:
+        print("Fatal: " + str(e))
         usage()
         sys.exit(1)
 

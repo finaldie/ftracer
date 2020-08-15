@@ -44,9 +44,11 @@ void _dump_profile_enter_info(void* function, void* caller)
 
     pthread_mutex_lock(&_fmutex);
 
-    int n = fprintf(__fp, "%lu|E|%p|%p\n", current, 
-        pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function, 
-        pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller);
+    int n = fprintf(__fp, "%lu|E|%p|%p|%s|%s\n", current,
+      pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function,
+      pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller,
+      pLinkMapFunction->l_name, pLinkMapCaller->l_name);
+
     if (n < 0) {
         printf("dump entrance trace info failed: %s\n", strerror(errno));
     }
@@ -68,9 +70,11 @@ void _dump_profile_exit_info(void* function, void* caller)
 
     pthread_mutex_lock(&_fmutex);
 
-    int n = fprintf(__fp, "%lu|X|%p|%p\n", current, 
-        pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function, 
-        pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller);
+    int n = fprintf(__fp, "%lu|X|%p|%p|%s|%s\n", current,
+      pLinkMapFunction != NULL ? (function - pLinkMapFunction->l_addr) : function,
+      pLinkMapCaller != NULL ? (caller - pLinkMapCaller->l_addr) : caller,
+      pLinkMapFunction->l_name, pLinkMapCaller->l_name);
+
     if (n < 0) {
         printf("dump exit trace info failed: %s\n", strerror(errno));
     }
